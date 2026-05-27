@@ -32,7 +32,7 @@ jobs:
           REMOTE_USER: "root"
           TARGET: "/www/wwwroot/fofimart.com"
 
-       - name: Restart PM2 on VPS
+      - name: Restart PM2 on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
