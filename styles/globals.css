@@ -2168,3 +2168,13 @@ body {
     padding-bottom: 65px;
   }
 }
+.form-error {
+  color: #dc2626 !important;
+  font-size: 1rem;
+  margin-top: 4px;
+}
+.alert-error {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+}

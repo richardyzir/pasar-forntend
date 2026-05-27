@@ -1,16 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useAuth } from "../hooks/useAuth";
 import Input from "../components/common/Input";
 import Button from "../components/common/Button";
 import Alert from "../components/common/Alert";
+import SearchSelect from "../components/common/SearchSelect";
 
 export default function Register() {
   const router = useRouter();
-  const { registerSendOtp, registerVerify } = useAuth();
+  const { registerSendOtp } = useAuth();
 
-  const [step, setStep] = useState("form"); // 'form' | 'otp'
+  const [selectedKota, setSelectedKota] = useState("");
+  const [selectedKecamatan, setSelectedKecamatan] = useState("");
+  const [selectedKelurahan, setSelectedKelurahan] = useState("");
+  const [alamatJalan, setAlamatJalan] = useState("");
+  const [dataAlamat, setDataAlamat] = useState({});
+
+  const [step, setStep] = useState("form");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -18,75 +25,55 @@ export default function Register() {
     phone: "",
     password: "",
     password_confirmation: "",
-    address: "",
   });
-  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [countdown, setCountdown] = useState(0);
   const [errors, setErrors] = useState({});
 
-  const startCountdown = () => {
-    setCountdown(120);
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
+  useEffect(() => {
+    fetch("/data/alamat.json")
+      .then((res) => res.json())
+      .then((data) => setDataAlamat(data));
+  }, []);
 
-  const formatTime = (s) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, "0")}`;
-  };
+  const kotaList = Object.keys(dataAlamat);
+  const kecamatanList = selectedKota
+    ? Object.keys(dataAlamat[selectedKota])
+    : [];
+  const kelurahanList =
+    selectedKecamatan && selectedKota
+      ? dataAlamat[selectedKota][selectedKecamatan]
+      : [];
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    if (errors[e.target.name]) {
-      setErrors({ ...errors, [e.target.name]: "" });
-    }
+    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  // Kirim OTP
-  const handleSendOtp = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // alert("Kirim OTP diklik!");
     setError("");
+    setErrors({});
     setLoading(true);
 
+    const fullAddress = `${selectedKelurahan}, ${selectedKecamatan}, ${selectedKota} - ${alamatJalan}`;
+    const finalForm = { ...form, address: fullAddress };
+
     try {
-      const data = await registerSendOtp(form);
-      setSuccess(data.message);
-      setStep("otp");
-      startCountdown();
+      const data = await registerSendOtp(finalForm);
+      if (data.success) {
+        setSuccess(data.message || "Registrasi berhasil!");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setTimeout(() => router.push("/login"), 3000);
+      }
     } catch (err) {
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors);
       } else {
-        setError(err.response?.data?.message || "Gagal mengirim OTP");
+        setError(err.response?.data?.message || "Gagal mendaftar");
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Verifikasi OTP
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      await registerVerify(form.phone, otp);
-      router.push("/");
-    } catch (err) {
-      setError(err.response?.data?.message || "Verifikasi gagal");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setLoading(false);
     }
@@ -95,14 +82,8 @@ export default function Register() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">
-          {step === "form" ? "📝 Daftar Akun" : "📱 Verifikasi OTP"}
-        </h1>
-        <p className="auth-subtitle">
-          {step === "form"
-            ? "Isi data diri untuk mendaftar"
-            : `Masukkan kode OTP yang dikirim ke ${form.phone}`}
-        </p>
+        <h1 className="auth-title">📝 Daftar Akun</h1>
+        <p className="auth-subtitle">Isi data diri untuk mendaftar</p>
 
         {error && (
           <Alert type="error" message={error} onClose={() => setError("")} />
@@ -115,10 +96,25 @@ export default function Register() {
           />
         )}
 
-        {step === "form" ? (
-          <form onSubmit={handleSendOtp}>
+        {success ? (
+          <div style={{ textAlign: "center", padding: "2rem 0" }}>
+            <span style={{ fontSize: "3rem" }}>✅</span>
+            <p style={{ fontSize: "1rem", fontWeight: 700, marginTop: 12 }}>
+              Pendaftaran Berhasil!
+            </p>
+            <p
+              style={{
+                fontSize: "0.85rem",
+                color: "var(--text-secondary)",
+                marginTop: 4,
+              }}>
+              Anda akan dialihkan ke halaman login...
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={handleRegister}>
             <Input
-              label="Nama Lengkap"
+              label="Nama Lengkap *"
               name="name"
               value={form.name}
               onChange={handleChange}
@@ -126,7 +122,7 @@ export default function Register() {
               required
             />
             <Input
-              label="Username"
+              label="Username *"
               name="username"
               value={form.username}
               onChange={handleChange}
@@ -142,10 +138,9 @@ export default function Register() {
               onChange={handleChange}
               error={errors.email}
               placeholder="Email (opsional)"
-              required
             />
             <Input
-              label="Nomor Telepon"
+              label="Nomor Telepon *"
               type="tel"
               name="phone"
               value={form.phone}
@@ -155,7 +150,7 @@ export default function Register() {
               required
             />
             <Input
-              label="Password"
+              label="Password *"
               type="password"
               name="password"
               value={form.password}
@@ -164,63 +159,66 @@ export default function Register() {
               required
             />
             <Input
-              label="Konfirmasi Password"
+              label="Konfirmasi Password *"
               type="password"
               name="password_confirmation"
               value={form.password_confirmation}
               onChange={handleChange}
               required
             />
+
+            <SearchSelect
+              label="Kota"
+              options={kotaList}
+              value={selectedKota}
+              onChange={(value) => {
+                setSelectedKota(value);
+                setSelectedKecamatan("");
+                setSelectedKelurahan("");
+              }}
+              placeholder="Cari kota..."
+            />
+            <SearchSelect
+              label="Kecamatan"
+              options={kecamatanList}
+              value={selectedKecamatan}
+              onChange={(value) => {
+                setSelectedKecamatan(value);
+                setSelectedKelurahan("");
+              }}
+              placeholder="Cari kecamatan..."
+              disabled={!selectedKota}
+            />
+            <SearchSelect
+              label="Kelurahan"
+              options={kelurahanList}
+              value={selectedKelurahan}
+              onChange={setSelectedKelurahan}
+              placeholder="Cari kelurahan..."
+              disabled={!selectedKecamatan}
+            />
+
             <Input
-              label="Alamat Lengkap"
+              label="Alamat Jalan (Rt/Rw, No Rumah, dll) *"
               type="textarea"
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-              error={errors.address}
+              name="address_detail"
+              value={alamatJalan}
+              onChange={(e) => setAlamatJalan(e.target.value)}
               required
             />
+
             <Button type="submit" block loading={loading}>
-              Kirim Kode OTP
+              Daftar
             </Button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyOtp}>
-            <div className="mb-4">
-              <input
-                type="text"
-                value={otp}
-                onChange={(e) =>
-                  setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))
-                }
-                className="form-input otp-input"
-                placeholder="000000"
-                maxLength={6}
-                autoFocus
-                required
-              />
-              {countdown > 0 && (
-                <p className="text-sm text-center mt-2">
-                  ⏱{" "}
-                  <strong className="text-danger">
-                    {formatTime(countdown)}
-                  </strong>
-                </p>
-              )}
+
+            <div style={{ marginTop: 12, textAlign: "center" }}>
+              <button
+                type="button"
+                className="btn btn-outline btn-block"
+                onClick={() => router.push("/")}>
+                Kembali ke Beranda
+              </button>
             </div>
-            <Button
-              type="submit"
-              block
-              loading={loading}
-              disabled={otp.length !== 6}>
-              Verifikasi & Daftar
-            </Button>
-            <button
-              type="button"
-              onClick={() => setStep("form")}
-              className="w-full text-sm text-gray text-center mt-3 hover:underline">
-              ← Ubah data
-            </button>
           </form>
         )}
 

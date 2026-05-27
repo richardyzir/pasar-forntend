@@ -1,0 +1,30 @@
+{
+  "Balikpapan": {
+    "Balikpapan Tengah": [
+      "Gunungsari Ilir",
+      "Karang Jati",
+      "Mekar Sari",
+      "Sumber Rejo"
+    ],
+    "Balikpapan Timur": ["Damai Bahagia", "Manggar", "Manggar Baru", "Lamaru"],
+    "Balikpapan Barat": [
+      "Baru Ilir",
+      "Baru Tengah",
+      "Baru Ulu",
+      "Karya Jaya",
+      "Margasari"
+    ],
+    "Balikpapan Selatan": [
+      "Damai",
+      "Sepinggan",
+      "Sepinggan Baru",
+      "Sepinggan Raya"
+    ],
+    "Balikpapan Utara": [
+      "Graha Indah",
+      "Gunung Samarinda",
+      "Karang Joang",
+      "Muara Rapak"
+    ]
+  }
+}

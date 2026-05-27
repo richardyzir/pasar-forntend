@@ -66,6 +66,7 @@ export default function Login() {
               required
             />
           </div>
+
           <div className="form-group">
             <label className="form-label">Password</label>
             <input
@@ -77,12 +78,22 @@ export default function Login() {
               required
             />
           </div>
+
           <button
             type="submit"
             className="btn btn-primary btn-block"
             disabled={loading}>
             {loading ? <span className="spinner" /> : "Masuk"}
           </button>
+
+          <div style={{ marginTop: 12, textAlign: "center" }}>
+            <button
+              type="button"
+              className="btn btn-outline btn-block"
+              onClick={() => router.push("/")}>
+              Kembali ke Beranda
+            </button>
+          </div>
         </form>
 
         <div className="auth-footer">
