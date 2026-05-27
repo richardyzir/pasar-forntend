@@ -32,7 +32,7 @@ jobs:
           REMOTE_USER: "root"
           TARGET: "/www/wwwroot/fofimart.com"
 
-      - name: Restart PM2 on VPS
+       - name: Restart PM2 on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -40,4 +40,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /www/wwwroot/fofimart.com
-            pm2 restart pasar-frontend
+            pm2 restart pasar-frontend --update-env
