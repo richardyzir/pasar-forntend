@@ -8,6 +8,41 @@ import PriceInput from "../../components/common/PriceInput";
 import SearchSelect from "../../components/common/SearchSelect";
 import AdminLayout from "../../components/layout/AdminLayout";
 
+const CATEGORIES = [
+  "Sayur",
+  "Ikan",
+  "Daging",
+  "Buah",
+  "Sembako",
+  "Bumbu",
+  "Minuman",
+  "Makanan",
+  "Perawatan",
+  "Rumah Tangga",
+  "Segar",
+  "Beku",
+  "Susu & Olahan",
+];
+
+const UNITS = [
+  "pack",
+  "kg",
+  "gram",
+  "liter",
+  "ml",
+  "pcs",
+  "ikat",
+  "sisir",
+  "buah",
+  "bungkus",
+  "botol",
+  "kaleng",
+  "karung",
+  "sachet",
+  "renteng",
+  "dus",
+];
+
 export default function AdminProducts() {
   const router = useRouter();
   const [page, setPage] = useState(1);
