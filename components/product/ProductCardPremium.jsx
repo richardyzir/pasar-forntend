@@ -50,9 +50,8 @@ export default function ProductCardPremium({ product, onAddToCart }) {
           </div>
         )}
         <p className="product-price">
-          {formatCurrency(product.final_price || product.price)}
+          {formatCurrency(product.final_price ?? product.price)}
         </p>
-        <p className="product-price">{formatCurrency(product.price)}</p>
 
         <button
           onClick={(e) => {

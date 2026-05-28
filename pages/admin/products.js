@@ -8,41 +8,6 @@ import PriceInput from "../../components/common/PriceInput";
 import SearchSelect from "../../components/common/SearchSelect";
 import AdminLayout from "../../components/layout/AdminLayout";
 
-const CATEGORIES = [
-  "Sayur",
-  "Ikan",
-  "Daging",
-  "Buah",
-  "Sembako",
-  "Bumbu",
-  "Minuman",
-  "Makanan",
-  "Perawatan",
-  "Rumah Tangga",
-  "Segar",
-  "Beku",
-  "Susu & Olahan",
-];
-
-const UNITS = [
-  "pack",
-  "kg",
-  "gram",
-  "liter",
-  "ml",
-  "pcs",
-  "ikat",
-  "sisir",
-  "buah",
-  "bungkus",
-  "botol",
-  "kaleng",
-  "karung",
-  "sachet",
-  "renteng",
-  "dus",
-];
-
 export default function AdminProducts() {
   const router = useRouter();
   const [page, setPage] = useState(1);
@@ -801,8 +766,8 @@ export default function AdminProducts() {
                   </div>
                   <div>
                     <p style={{ color: "var(--text-muted)" }}>Harga Jual</p>
-                    <p style={{ fontWeight: 700, color: "var(--primary)" }}>
-                      {formatCurrency(product.price)}
+                    <p className="product-price">
+                      {formatCurrency(product.final_price || product.price)}
                     </p>
                   </div>
                   <div>
