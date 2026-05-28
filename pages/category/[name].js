@@ -79,7 +79,7 @@ export default function CategoryPage() {
           cursor: "pointer",
           fontSize: "0.85rem",
           color: "red",
-          marginTop: 65,
+          marginTop: 55,
           marginBottom: 12,
           display: "flex",
           alignItems: "center",
@@ -133,7 +133,7 @@ export default function CategoryPage() {
               alignItems: "center",
               gap: 4,
               fontSize: "0.7rem",
-              border: "1px solid var(--border-light)",
+              border: "1px solid var(--border)",
             }}>
             <span>{cat.emoji || "📂"}</span>
             <span>{cat.name}</span>

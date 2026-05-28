@@ -864,6 +864,7 @@ body {
 /* ============================================ */
 @media (max-width: 640px) {
   .container {
+    padding-top: 25px;
     padding: 0 12px;
   }
   .hide-mobile {
@@ -901,9 +902,10 @@ body {
     transform: scale(1.1);
   }
 
-  body {
+  /* body {
+    padding-top: 60px;
     padding-bottom: 65px;
-  }
+  } */
 
   /* Header */
   .header-inner {
@@ -1247,7 +1249,7 @@ body {
   .detail-image-section > div {
     height: 280px !important;
     font-size: 4rem !important;
-    margin-top: 40px !important;
+    margin-top: 20px !important;
   }
 
   .detail-info-section {
@@ -2225,6 +2227,7 @@ body {
   }
 
   body {
+    padding-top: 25px;
     padding-bottom: 65px;
   }
 }
