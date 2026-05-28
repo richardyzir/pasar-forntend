@@ -15,10 +15,28 @@ export default function Header() {
   return (
     <header className="header">
       <div className="container header-inner">
-        <Link href="/" className="header-logo">
-          🛍️ <span className="hide-mobile">Fofi Mart</span>
-          <span className="hide-desktop">Fofi Mart</span>
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img
+            className="logo-light"
+            src="/fofimartbg.png"
+            alt="Fofi Mart"
+            style={{ height: 50 }}
+          />
+          <img
+            className="logo-dark"
+            src="/fofimartnonbg.png"
+            alt="Fofi Mart"
+            style={{ height: 50 }}
+          />
+          <span
+            style={{
+              fontWeight: 800,
+              fontSize: "1.2rem",
+              color: "var(--text)",
+            }}>
+            Fofi Mart
+          </span>
+        </div>
 
         <nav className="header-nav hide-mobile">
           <Link

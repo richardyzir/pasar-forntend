@@ -2,6 +2,21 @@
 /* CSS VARIABLES & THEMES                      */
 /* ============================================ */
 
+/* logo */
+.logo-light {
+  display: block;
+}
+.logo-dark {
+  display: none;
+}
+
+.dark .logo-light {
+  display: none;
+}
+.dark .logo-dark {
+  display: block;
+}
+
 /* Light Theme (Default) */
 :root,
 .light {

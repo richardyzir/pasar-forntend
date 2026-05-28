@@ -43,6 +43,27 @@ function MyApp({ Component, pageProps }) {
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=yes"
         />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0f172a" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="Fofi Mart" />
+        <link rel="apple-touch-icon" href="/fofimartbg192.png" />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="/fofimartbg192.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="512x512"
+          href="/fofimartbg512.png"
+        />
         <title>Fofi Mart</title>
       </Head>
 
@@ -74,5 +95,14 @@ function MyApp({ Component, pageProps }) {
     </AuthProvider>
   );
 }
+<script
+  dangerouslySetInnerHTML={{
+    __html: `
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  `,
+  }}
+/>;
 
 export default MyApp;
