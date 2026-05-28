@@ -3,7 +3,7 @@
   "short_name": "Fofi Mart",
   "description": "Pasar Online Fofi Mart",
   "start_url": "/?utm_source=pwa",
-  "display": "standalone",
+  "display": "fullscreen",
   "display_override": ["standalone", "fullscreen"],
   "background_color": "#fafafa",
   "theme_color": "#0f172a",

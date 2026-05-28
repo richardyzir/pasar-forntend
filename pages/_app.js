@@ -6,23 +6,20 @@ import "../styles/globals.css";
 import Head from "next/head";
 
 function MyApp({ Component, pageProps }) {
-  const router = useRouter(); // ← HARUS DI SINI
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const start = () => setLoading(true);
     const end = () => setLoading(false);
-
     router.events.on("routeChangeStart", start);
     router.events.on("routeChangeComplete", end);
-
     return () => {
       router.events.off("routeChangeStart", start);
       router.events.off("routeChangeComplete", end);
     };
   }, [router]);
 
-  // Theme init
   useEffect(() => {
     const saved = localStorage.getItem("theme") || "system";
     const root = document.documentElement;
@@ -51,32 +48,31 @@ function MyApp({ Component, pageProps }) {
           content="black-translucent"
         />
         <meta name="apple-mobile-web-app-title" content="Fofi Mart" />
-        <link rel="apple-touch-icon" href="/fofimartbg192.png" />
+        <link rel="apple-touch-icon" href="/fofimart192.png" />
         <link
           rel="icon"
           type="image/png"
           sizes="192x192"
-          href="/fofimartbg192.png"
+          href="/fofimart192.png"
         />
         <link
           rel="icon"
           type="image/png"
           sizes="512x512"
-          href="/fofimartbg512.png"
+          href="/fofimart512.png"
         />
-
-        {/* iOS PWA */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"
-        />
-        <meta name="apple-mobile-web-app-title" content="Fofi Mart" />
-        <link rel="apple-touch-icon" href="/fofimart192.png" />
-        <link rel="apple-touch-startup-image" href="/fofimart512.png" />
-
         <title>Fofi Mart</title>
       </Head>
+
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+          }
+        `,
+        }}
+      />
 
       {loading && (
         <div
@@ -106,14 +102,5 @@ function MyApp({ Component, pageProps }) {
     </AuthProvider>
   );
 }
-<script
-  dangerouslySetInnerHTML={{
-    __html: `
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
-  `,
-  }}
-/>;
 
 export default MyApp;
