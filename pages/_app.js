@@ -64,6 +64,17 @@ function MyApp({ Component, pageProps }) {
           sizes="512x512"
           href="/fofimartbg512.png"
         />
+
+        {/* iOS PWA */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="Fofi Mart" />
+        <link rel="apple-touch-icon" href="/fofimart192.png" />
+        <link rel="apple-touch-startup-image" href="/fofimart512.png" />
+
         <title>Fofi Mart</title>
       </Head>
 
