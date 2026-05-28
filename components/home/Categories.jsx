@@ -16,7 +16,7 @@ export default function Categories() {
         style={{
           fontSize: "0.875rem",
           fontWeight: 700,
-          color: "#3f3f46",
+          color: "var(--text)",
           marginBottom: 10,
         }}>
         📂 Kategori
@@ -32,7 +32,16 @@ export default function Categories() {
         {categories.map((cat) => (
           <div
             key={cat.id}
-            onClick={() => router.push(`/category/${cat.name}`)}>
+            onClick={() => router.push(`/category/${cat.name}`)}
+            style={{
+              background: cat.color || "var(--bg-card-alt)",
+              borderRadius: 6,
+              padding: "12px 14px",
+              textAlign: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+              minWidth: 72,
+            }}>
             <span
               style={{ fontSize: "1.5rem", display: "block", marginBottom: 4 }}>
               {cat.emoji || "📂"}

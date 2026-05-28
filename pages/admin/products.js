@@ -594,6 +594,33 @@ export default function AdminProducts() {
               </div>
 
               <div className="form-group">
+                <label className="form-label">Diskon</label>
+                <input
+                  className="form-input"
+                  type="number"
+                  value={form.discount}
+                  onChange={(e) =>
+                    setForm({ ...form, discount: e.target.value })
+                  }
+                  placeholder="0"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Tipe Diskon</label>
+                <select
+                  className="form-input"
+                  value={form.discount_type || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, discount_type: e.target.value })
+                  }>
+                  <option value="">Tidak ada</option>
+                  <option value="percentage">Persentase (%)</option>
+                  <option value="fixed">Nominal (Rp)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label className="form-checkbox">
                   <input
                     type="checkbox"

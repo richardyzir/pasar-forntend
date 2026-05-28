@@ -26,6 +26,32 @@ export default function ProductCardPremium({ product, onAddToCart }) {
         <p className="product-category">{product.category || "Umum"}</p>
         <h3 className="product-name">{product.name}</h3>
         <p className="product-unit">per {product.unit || "pack"}</p>
+        {product.discount > 0 && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              marginBottom: 2,
+            }}>
+            <span
+              style={{
+                fontSize: "0.7rem",
+                textDecoration: "line-through",
+                color: "var(--text-muted)",
+              }}>
+              {formatCurrency(product.price)}
+            </span>
+            <span className="badge badge-danger" style={{ fontSize: "0.6rem" }}>
+              {product.discount_type === "percentage"
+                ? `${product.discount}%`
+                : `-Rp ${Number(product.discount).toLocaleString("id")}`}
+            </span>
+          </div>
+        )}
+        <p className="product-price">
+          {formatCurrency(product.final_price || product.price)}
+        </p>
         <p className="product-price">{formatCurrency(product.price)}</p>
 
         <button
