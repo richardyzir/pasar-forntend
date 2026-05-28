@@ -592,32 +592,51 @@ export default function AdminProducts() {
                   onChange={() => {}}
                 />
               </div>
-
               <div className="form-group">
                 <label className="form-label">Diskon</label>
-                <input
-                  className="form-input"
-                  type="number"
-                  value={form.discount}
-                  onChange={(e) =>
-                    setForm({ ...form, discount: e.target.value })
-                  }
-                  placeholder="0"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Tipe Diskon</label>
-                <select
-                  className="form-input"
-                  value={form.discount_type || ""}
-                  onChange={(e) =>
-                    setForm({ ...form, discount_type: e.target.value })
-                  }>
-                  <option value="">Tidak ada</option>
-                  <option value="percentage">Persentase (%)</option>
-                  <option value="fixed">Nominal (Rp)</option>
-                </select>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <select
+                      className="form-input"
+                      value={form.discount_type || ""}
+                      onChange={(e) =>
+                        setForm({ ...form, discount_type: e.target.value })
+                      }>
+                      <option value="">Pilih Tipe</option>
+                      <option value="percentage">📊 Persentase (%)</option>
+                      <option value="fixed">💰 Nominal (Rp)</option>
+                    </select>
+                  </div>
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}>
+                    <input
+                      className="form-input"
+                      type="number"
+                      min="0"
+                      max={
+                        form.discount_type === "percentage" ? "100" : "1000000"
+                      }
+                      value={form.discount}
+                      onChange={(e) =>
+                        setForm({ ...form, discount: e.target.value })
+                      }
+                      placeholder="0"
+                    />
+                    <span
+                      style={{
+                        fontSize: "0.85rem",
+                        fontWeight: 600,
+                        color: "var(--text-secondary)",
+                      }}>
+                      {form.discount_type === "percentage" ? "%" : "Rp"}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <div className="form-group">
