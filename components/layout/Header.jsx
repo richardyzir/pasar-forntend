@@ -61,25 +61,6 @@ export default function Header() {
           )}
         </nav>
 
-        {/* Theme Switcher */}
-        {/* <button
-          onClick={toggle}
-          title={`Mode: ${theme}`}
-          style={{
-            background: "none",
-            border: "1px solid var(--border)",
-            borderRadius: 20,
-            padding: "4px 10px",
-            cursor: "pointer",
-            fontSize: "0.875rem",
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            color: "var(--text-secondary)",
-          }}>
-          {icon}
-        </button> */}
-
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button
             onClick={toggle}
@@ -98,14 +79,20 @@ export default function Header() {
             }}>
             {icon}
           </button>
-          <button
-            className="btn btn-outline btn-sm"
-            onClick={() => {
-              localStorage.clear();
-              router.push("/");
-            }}>
-            Logout
-          </button>
+          {user ? (
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={() => {
+                localStorage.clear();
+                window.location.href = "/";
+              }}>
+              🚪 Keluar
+            </button>
+          ) : (
+            <Link href="/login" className="btn btn-primary btn-sm">
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </header>

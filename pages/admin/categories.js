@@ -6,6 +6,7 @@ import Toast from "../../components/common/Toast";
 
 export default function AdminCategories() {
   const [categories, setCategories] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -30,6 +31,18 @@ export default function AdminCategories() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (imageFile) {
+      const fd = new FormData();
+      fd.append("image", imageFile);
+      const { data: img } = await api.post(
+        "/admin/categories/upload-image",
+        fd,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
+      form.image = img.image;
+    }
     if (editId) {
       await api.put(`/admin/categories/${editId}`, form);
       showToast("✅ Kategori diperbarui");
@@ -134,6 +147,50 @@ export default function AdminCategories() {
             style={{ padding: 20 }}>
             <h3>{editId ? "Edit" : "Tambah"} Kategori</h3>
             <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">Gambar</label>
+                {imageFile ? (
+                  <div style={{ textAlign: "center", marginBottom: 8 }}>
+                    <img
+                      src={URL.createObjectURL(imageFile)}
+                      alt="Preview"
+                      style={{
+                        width: "100%",
+                        height: 120,
+                        borderRadius: 10,
+                        objectFit: "cover",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      style={{ marginTop: 6 }}
+                      onClick={() => setImageFile(null)}>
+                      ✕ Hapus
+                    </button>
+                  </div>
+                ) : editId && form.image ? (
+                  <div style={{ textAlign: "center", marginBottom: 8 }}>
+                    <img
+                      src={`https://api.fofimart.com${form.image}`}
+                      alt="Preview"
+                      style={{
+                        width: "100%",
+                        height: 120,
+                        borderRadius: 10,
+                        objectFit: "cover",
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files[0])}
+                    style={{ width: "100%" }}
+                  />
+                )}
+              </div>
               <div className="form-group">
                 <label className="form-label">Nama</label>
                 <input
