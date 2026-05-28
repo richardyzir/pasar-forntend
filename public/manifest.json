@@ -2,20 +2,24 @@
   "name": "Fofi Mart",
   "short_name": "Fofi Mart",
   "description": "Pasar Online Fofi Mart",
-  "start_url": "/",
+  "start_url": "/?utm_source=pwa",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "background_color": "#fafafa",
   "theme_color": "#0f172a",
+  "scope": "/",
   "icons": [
     {
       "src": "/fofimart192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/fofimart512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
