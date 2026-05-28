@@ -1080,7 +1080,7 @@ body {
 }
 
 .detail-container {
-  margin-top: 20px;
+  margin-top: 40px;
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -1099,6 +1099,7 @@ body {
   justify-content: center;
   height: 320px;
   font-size: 6rem;
+  overflow: hidden;
 }
 
 .detail-info-section {
@@ -1106,7 +1107,7 @@ body {
 }
 
 .detail-badge {
-  margin-bottom: 8px;
+  margin-bottom: 2px;
 }
 
 .detail-title {
@@ -1116,14 +1117,14 @@ body {
   margin-bottom: 4px;
 }
 
-.detail-unit {
+/* .detail-unit {
   font-size: 0.813rem;
   color: var(--text-muted);
-  margin-bottom: 4px;
-}
+  margin-bottom: 2px;
+} */
 
 .detail-price {
-  font-size: 1.75rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--primary);
   margin-bottom: 16px;
@@ -1166,7 +1167,7 @@ body {
 .detail-qty-control {
   display: flex;
   align-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -1211,10 +1212,54 @@ body {
   color: var(--text-secondary);
 }
 
+.btn-kembali {
+  width: auto;
+}
+
+/* Mobile */
 @media (max-width: 640px) {
-  .detail-main-image {
-    height: 250px;
-    font-size: 4rem;
+  .detail-container {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .detail-image-section {
+    max-width: 100% !important;
+    flex: none !important;
+  }
+
+  .detail-main-image,
+  .detail-image-section > div {
+    height: 280px !important;
+    font-size: 4rem !important;
+    margin-top: 40px !important;
+  }
+
+  .detail-info-section {
+    flex: none !important;
+  }
+
+  .detail-title {
+    font-size: 1.25rem !important;
+  }
+
+  .detail-price {
+    font-size: 1.5rem !important;
+  }
+
+  .detail-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .detail-info-footer {
+    flex-direction: column !important;
+    gap: 8px !important;
+    text-align: center;
+  }
+
+  .btn-kembali {
+    width: 100% !important;
   }
 }
 
@@ -2177,4 +2222,9 @@ body {
   background: #fee2e2;
   color: #dc2626;
   border: 1px solid #dc2626;
+}
+
+.payment-method-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

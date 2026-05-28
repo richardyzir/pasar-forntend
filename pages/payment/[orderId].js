@@ -37,32 +37,21 @@ export default function PaymentPage() {
   const [order, setOrder] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isExpired, setIsExpired] = useState(false);
-  const [paymentSettings, setPaymentSettings] = useState([]);
 
   useEffect(() => {
-    loadPaymentSettings();
-  }, []);
-
-  const loadPaymentSettings = async () => {
-    try {
-      const data = await get("/payment-settings");
-      setPaymentSettings(data || []);
-    } catch (e) {}
-  };
-
-  const getPaymentInfo = (method) => {
-    return paymentSettings.find((p) => p.method === method);
-  };
+    if (orderId) loadOrder();
+  }, [orderId]);
 
   const loadOrder = async () => {
     try {
       const data = await get(`/orders/${orderId}`);
       setOrder(data);
-
       if (data.payment?.expires_at) {
         const expiresAt = new Date(data.payment.expires_at).getTime();
-        const now = Date.now();
-        const seconds = Math.max(0, Math.floor((expiresAt - now) / 1000));
+        const seconds = Math.max(
+          0,
+          Math.floor((expiresAt - Date.now()) / 1000),
+        );
         setTimeLeft(seconds);
         if (seconds <= 0) setIsExpired(true);
       }
@@ -70,15 +59,10 @@ export default function PaymentPage() {
   };
 
   useEffect(() => {
-    if (orderId) loadOrder();
-  }, [orderId]);
-
-  useEffect(() => {
     if (timeLeft <= 0) {
       if (order) setIsExpired(true);
       return;
     }
-
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -89,11 +73,10 @@ export default function PaymentPage() {
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, [timeLeft, order]);
 
-  if (loading || !order) {
+  if (loading || !order)
     return (
       <Layout>
         <div className="loading-page">
@@ -101,7 +84,8 @@ export default function PaymentPage() {
         </div>
       </Layout>
     );
-  }
+
+  const isCod = order.payment_method === "cod";
 
   return (
     <Layout>
@@ -111,17 +95,34 @@ export default function PaymentPage() {
         {order.status === "pending_payment" && (
           <div
             style={{
-              background: isExpired
-                ? "#fee2e2"
-                : timeLeft < 120
-                  ? "#fef3c7"
-                  : "#d1fae5",
+              background: isCod
+                ? "#dbeafe"
+                : isExpired
+                  ? "#fee2e2"
+                  : timeLeft < 120
+                    ? "#fef3c7"
+                    : "#d1fae5",
               borderRadius: 12,
               padding: "14px 16px",
               textAlign: "center",
               marginBottom: 16,
             }}>
-            {isExpired ? (
+            {isCod ? (
+              <>
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    fontWeight: 700,
+                    color: "#2563eb",
+                  }}>
+                  💵 Pembayaran di Tempat
+                </p>
+                <p style={{ fontSize: "0.75rem", color: "#1e40af" }}>
+                  Kurir akan datang sesuai waktu pengantaran. Siapkan uang tunai
+                  ya!
+                </p>
+              </>
+            ) : isExpired ? (
               <>
                 <p
                   style={{
@@ -161,10 +162,9 @@ export default function PaymentPage() {
 
         <div className="payment-card">
           <div className="payment-row">
-            <span className="payment-label">Nomor Pesanan&nbsp;</span>
+            <span className="payment-label">Nomor Pesanan</span>
             <span className="payment-value-bold">#{order.order_number}</span>
           </div>
-
           <div className="payment-row">
             <span className="payment-label">Status</span>
             <span
@@ -173,7 +173,6 @@ export default function PaymentPage() {
             </span>
           </div>
 
-          {/* Metode Bayar */}
           <div
             style={{
               display: "flex",
@@ -184,7 +183,6 @@ export default function PaymentPage() {
               marginBottom: 8,
               background: "var(--primary-light)",
               borderRadius: 8,
-              // border: "1px solid var(--primary)",
             }}>
             <span style={{ fontSize: "0.75rem", color: "var(--primary)" }}>
               Metode Bayar
@@ -195,7 +193,7 @@ export default function PaymentPage() {
                 fontWeight: 600,
                 color: "var(--primary)",
               }}>
-              {order.payment_method === "cod" && "💵 Bayar di Tempat"}
+              {isCod && "💵 Bayar di Tempat"}
               {order.payment_method === "bank_transfer" && "🏦 Transfer Bank"}
               {order.payment_method === "virtual_account" &&
                 "📱 Virtual Account"}
@@ -203,105 +201,60 @@ export default function PaymentPage() {
             </span>
           </div>
 
-          {/* Info Rekening / VA - hanya jika bukan COD & bukan QRIS */}
           {order.status === "pending_payment" &&
             order.payment_method !== "cod" &&
             order.payment_method !== "qris" && (
               <div
                 className="payment-card"
                 style={{
-                  marginTop: 1,
+                  marginTop: 8,
                   borderRadius: 6,
-                  border: "1px solid var(--primary)",
+                  border: "1px solid var(--border)",
+                  padding: 12,
                 }}>
                 <p className="payment-section-title">Informasi Pembayaran</p>
-
                 {order.payment_method === "bank_transfer" && (
                   <>
                     <div className="payment-row">
                       <span className="payment-label">Bank</span>
-                      <span className="payment-value-bold">
-                        {getPaymentInfo("bank_transfer")?.bank_name || "BCA"}
-                      </span>
+                      <span className="payment-value-bold">BCA</span>
                     </div>
                     <div className="payment-row">
                       <span className="payment-label">No. Rekening</span>
                       <span
                         className="payment-value-bold"
                         style={{ letterSpacing: 1 }}>
-                        {getPaymentInfo("bank_transfer")?.account_number ||
-                          "1234567890"}
+                        1234567890
                       </span>
                     </div>
                     <div className="payment-row">
                       <span className="payment-label">Atas Nama</span>
-                      <span className="payment-value-bold">
-                        {getPaymentInfo("bank_transfer")?.account_name ||
-                          "Fofi Mart"}
-                      </span>
+                      <span className="payment-value-bold">Fofi Mart</span>
                     </div>
                   </>
                 )}
-
                 {order.payment_method === "virtual_account" && (
                   <div className="payment-row">
                     <span className="payment-label">No. VA</span>
                     <span
                       className="payment-value-bold"
                       style={{ letterSpacing: 1, fontSize: "1rem" }}>
-                      {getPaymentInfo("virtual_account")?.va_prefix || "823"}
-                      {String(order.id).padStart(7, "0")}
+                      823{String(order.id).padStart(7, "0")}
                     </span>
                   </div>
                 )}
               </div>
             )}
 
-          {/* QRIS */}
-          {order.status === "pending_payment" &&
-            order.payment_method === "qris" && (
-              <div
-                className="payment-card"
-                style={{ marginTop: 8, textAlign: "center" }}>
-                <p className="payment-section-title">Scan QRIS</p>
-                <div
-                  style={{
-                    width: 140,
-                    height: 140,
-                    margin: "12px auto 8px",
-                    background: "#fff",
-                    borderRadius: 12,
-                    border: "1px solid var(--border)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
-                  <span style={{ fontSize: "3rem" }}>📱</span>
-                </div>
-                <p
-                  style={{
-                    fontSize: "0.7rem",
-                    color: "var(--text-secondary)",
-                  }}>
-                  Scan dengan e-wallet / mobile banking
-                </p>
-              </div>
-            )}
-
-          {/* COD */}
-          {order.payment_method === "cod" && (
+          {isCod && (
             <div
-              className="payment-card"
-              style={{ marginTop: 8, textAlign: "center" }}>
-              {/* <p className="payment-section-title">💵 Bayar di Tempat</p> */}
-              <p
-                style={{
-                  fontSize: "0.8rem",
-                  color: "var(--text-secondary)",
-                  padding: "8px 0",
-                }}>
-                Silahkan melakukan pembayaran saat kurir tiba
-              </p>
+              style={{
+                textAlign: "center",
+                padding: "12px 0",
+                color: "var(--text-secondary)",
+                fontSize: "0.85rem",
+              }}>
+              💵 Silahkan melakukan pembayaran saat kurir tiba
             </div>
           )}
 
@@ -313,14 +266,12 @@ export default function PaymentPage() {
               {order.delivery_time === "khusus" && "📅 Pesanan Khusus"}
             </span>
           </div>
-
           {order.delivery_time === "khusus" && order.delivery_note && (
             <div className="payment-row">
               <span className="payment-label">Catatan Waktu</span>
               <span className="payment-value">{order.delivery_note}</span>
             </div>
           )}
-
           <div className="payment-divider" />
           <p className="payment-section-title">Items</p>
           {order.items?.map((item) => (
@@ -331,7 +282,6 @@ export default function PaymentPage() {
               <span>{formatCurrency(item.subtotal)}</span>
             </div>
           ))}
-
           <div className="payment-divider" />
           <div className="payment-row">
             <span className="payment-label">Total</span>
@@ -339,7 +289,6 @@ export default function PaymentPage() {
               {formatCurrency(order.total_amount)}
             </span>
           </div>
-
           {order.notes && (
             <>
               <div className="payment-divider" />

@@ -73,19 +73,7 @@ export default function ProductDetail() {
       <div className="detail-container">
         {/* Kiri - Gambar */}
         <div className="detail-image-section">
-          <div
-            style={{
-              background: "#fafafa",
-              borderRadius: 8,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              fontSize: "6rem",
-              marginTop: 40,
-              marginBottom: 8,
-              overflow: "hidden",
-            }}>
+          <div>
             {product.image ? (
               <img
                 src={`https://api.fofimart.com${product.image}`}
@@ -100,18 +88,12 @@ export default function ProductDetail() {
 
         {/* Kanan - Info */}
         <div className="detail-info-section">
+          <h1 className="detail-title">
+            {product.name} / {product.unit || "pack"}
+          </h1>
           <span className="badge badge-primary detail-badge">
             {product.category || "Umum"}
           </span>
-          <h1 className="detail-title">{product.name}</h1>
-          <p
-            style={{
-              fontSize: "0.813rem",
-              color: "var(--text-muted)",
-              marginBottom: 4,
-            }}>
-            per {product.unit || "pack"}
-          </p>
           <p className="detail-price">{formatCurrency(product.price)}</p>
 
           <div className="detail-stock-row">

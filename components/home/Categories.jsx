@@ -32,16 +32,7 @@ export default function Categories() {
         {categories.map((cat) => (
           <div
             key={cat.id}
-            onClick={() => router.push(`/?category=${cat.name}`)}
-            style={{
-              background: cat.color || "#f4f4f5",
-              borderRadius: 12,
-              padding: "12px 14px",
-              textAlign: "center",
-              cursor: "pointer",
-              flexShrink: 0,
-              minWidth: 72,
-            }}>
+            onClick={() => router.push(`/category/${cat.name}`)}>
             <span
               style={{ fontSize: "1.5rem", display: "block", marginBottom: 4 }}>
               {cat.emoji || "📂"}

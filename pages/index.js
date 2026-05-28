@@ -154,15 +154,17 @@ export default function Home() {
               </div>
             ) : (
               <>
-                <h2
-                  style={{
-                    fontSize: "1rem",
-                    fontWeight: 700,
-                    color: "var(--text)",
-                    marginBottom: 5,
-                  }}>
-                  🛍️ Semua Produk
-                </h2>
+                <div id="produk-section">
+                  <h2
+                    style={{
+                      fontSize: "1rem",
+                      fontWeight: 700,
+                      color: "var(--text)",
+                      marginBottom: 5,
+                    }}>
+                    🛍️ Semua Produk
+                  </h2>
+                </div>
                 <div className="product-grid">
                   {products.map((product) => (
                     <ProductCardPremium

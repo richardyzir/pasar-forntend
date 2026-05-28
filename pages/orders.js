@@ -53,9 +53,7 @@ export default function Orders() {
           if (prev[id] > 0) {
             updated[id] = prev[id] - 1;
             changed = true;
-          } else {
-            updated[id] = 0;
-          }
+          } else updated[id] = 0;
         });
         return changed ? updated : prev;
       });
@@ -63,10 +61,10 @@ export default function Orders() {
     return () => clearInterval(interval);
   }, []);
 
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
+  const formatTime = (s) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
   useEffect(() => {
@@ -83,13 +81,11 @@ export default function Orders() {
       setOrders(data?.data || []);
       setCurrentPage(data?.current_page || 1);
       setLastPage(data?.last_page || 1);
-
-      // Hitung timer
       const newTimers = {};
-      data?.data?.forEach((order) => {
-        if (order.status === "pending_payment" && order.payment?.expires_at) {
-          const expiresAt = new Date(order.payment.expires_at).getTime();
-          newTimers[order.id] = Math.max(
+      data?.data?.forEach((o) => {
+        if (o.status === "pending_payment" && o.payment?.expires_at) {
+          const expiresAt = new Date(o.payment.expires_at).getTime();
+          newTimers[o.id] = Math.max(
             0,
             Math.floor((expiresAt - Date.now()) / 1000),
           );
@@ -101,6 +97,14 @@ export default function Orders() {
 
   if (!isAuthenticated) return null;
 
+  const getPaymentLabel = (m) => {
+    if (m === "cod") return { icon: "💵", label: "Bayar di Tempat (COD)" };
+    if (m === "bank_transfer") return { icon: "🏦", label: "Transfer Bank" };
+    if (m === "virtual_account")
+      return { icon: "📱", label: "Virtual Account" };
+    if (m === "qris") return { icon: "📷", label: "QRIS" };
+    return { icon: "💳", label: m };
+  };
   return (
     <Layout>
       <h1
@@ -147,7 +151,6 @@ export default function Orders() {
           <div className="orders-grid">
             {orders.map((order) => (
               <div key={order.id} className="order-card">
-                {/* Header */}
                 <div className="order-card-header">
                   <div>
                     <p className="order-number">#{order.order_number}</p>
@@ -194,7 +197,6 @@ export default function Orders() {
                     </div>
                   )}
 
-                {/* Items */}
                 <div className="order-card-items">
                   {order.items?.map((item) => (
                     <div key={item.id} className="order-item-row">
@@ -206,18 +208,24 @@ export default function Orders() {
                   ))}
                 </div>
 
-                {/* Footer */}
                 <div className="order-card-footer">
                   <div>
-                    <p className="order-payment-method">
-                      {order.payment_method === "cod"
-                        ? "COD"
-                        : order.payment_method === "bank_transfer"
-                          ? "Transfer Bank"
-                          : order.payment_method === "virtual_account"
-                            ? "Virtual Account"
-                            : "QRIS"}
-                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        marginBottom: 2,
+                      }}>
+                      <span>{getPaymentLabel(order.payment_method).icon}</span>
+                      <span
+                        style={{
+                          fontSize: "0.7rem",
+                          color: "var(--text-secondary)",
+                        }}>
+                        {getPaymentLabel(order.payment_method).label}
+                      </span>
+                    </div>
                     <p className="order-total">
                       {formatCurrency(order.total_amount)}
                     </p>
@@ -225,14 +233,13 @@ export default function Orders() {
                   <button
                     className="btn btn-outline btn-sm"
                     onClick={() => router.push(`/payment/${order.id}`)}>
-                    Detail
+                    Detail Pesanan
                   </button>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Pagination */}
           {lastPage > 1 && (
             <div className="orders-pagination">
               <button

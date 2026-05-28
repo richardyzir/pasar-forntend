@@ -25,7 +25,7 @@ export default function Checkout() {
 
   const [shippingAddress, setShippingAddress] = useState(user?.address || "");
   const [deliveryTime, setDeliveryTime] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("bank_transfer");
+  const [paymentMethod, setPaymentMethod] = useState("cod");
   const [notes, setNotes] = useState("");
   const [formError, setFormError] = useState("");
   const [showAlert, setShowAlert] = useState(false);
@@ -313,15 +313,35 @@ export default function Checkout() {
                 {PAYMENT_METHODS.map((method) => (
                   <label
                     key={method.value}
-                    className={`payment-method-option ${paymentMethod === method.value ? "selected" : ""}`}>
+                    className={`payment-method-option ${paymentMethod === method.value ? "selected" : ""}`}
+                    style={{
+                      opacity: method.value !== "cod" ? 0.4 : 1,
+                      cursor:
+                        method.value !== "cod" ? "not-allowed" : "pointer",
+                      pointerEvents: method.value !== "cod" ? "none" : "auto",
+                    }}
+                    onClick={(e) => {
+                      if (method.value !== "cod") e.preventDefault();
+                    }}>
                     <input
                       type="radio"
                       name="payment"
                       value={method.value}
                       checked={paymentMethod === method.value}
                       onChange={(e) => setPaymentMethod(e.target.value)}
+                      disabled={method.value !== "cod"}
                     />
                     {method.label}
+                    {method.value !== "cod" && (
+                      <span
+                        style={{
+                          fontSize: "0.6rem",
+                          display: "block",
+                          color: "var(--text-muted)",
+                        }}>
+                        Segera Hadir
+                      </span>
+                    )}
                   </label>
                 ))}
               </div>
@@ -409,11 +429,12 @@ export default function Checkout() {
                 }}>
                 Apakah pesanan Anda sudah cukup untuk hari ini?
               </h3>
+
               <p
                 style={{
-                  fontSize: "0.75rem",
+                  fontSize: "0.9rem",
                   color: "var(--text-secondary)",
-                  marginTop: 4,
+                  marginTop: 1,
                 }}>
                 List item yang dipesan:
               </p>
@@ -452,7 +473,17 @@ export default function Checkout() {
                 <span>{formatCurrency(finalTotal)}</span>
               </div>
             </div>
-
+            <p
+              style={{
+                fontSize: "0.8rem",
+                color: "#dc2626",
+                marginTop: 1,
+                marginBottom: 12,
+                textAlign: "center",
+                padding: "0 20px",
+              }}>
+              ⚠️ Penambahan item disini tidak dapat dihapus
+            </p>
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 className="btn btn-outline btn-sm"
@@ -471,9 +502,9 @@ export default function Checkout() {
               </button>
               <button
                 className="btn btn-dark"
-                style={{ flex: 2 }}
+                style={{ flex: 1 }}
                 onClick={handleSubmitOrder}>
-                Lanjutkan ✅
+                Pesan ✅
               </button>
             </div>
           </div>
