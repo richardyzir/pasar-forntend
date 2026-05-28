@@ -94,7 +94,33 @@ export default function ProductDetail() {
           <span className="badge badge-primary detail-badge">
             {product.category || "Umum"}
           </span>
-          <p className="detail-price">{formatCurrency(product.price)}</p>
+
+          {product.discount > 0 && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 4,
+              }}>
+              <span
+                style={{
+                  fontSize: "1rem",
+                  textDecoration: "line-through",
+                  color: "var(--text-muted)",
+                }}>
+                {formatCurrency(product.price)}
+              </span>
+              <span className="badge badge-danger">
+                {product.discount_type === "percentage"
+                  ? `${product.discount}%`
+                  : `-${formatCurrency(product.discount)}`}
+              </span>
+            </div>
+          )}
+          <p className="detail-price">
+            {formatCurrency(product.final_price ?? product.price)}
+          </p>
 
           <div className="detail-stock-row">
             <span

@@ -29,6 +29,10 @@ export default function Cart() {
     syncPrices();
   }, []);
 
+  useEffect(() => {
+    syncPrices();
+  }, []);
+
   const syncPrices = async () => {
     if (items.length === 0) return;
     try {
@@ -39,12 +43,19 @@ export default function Cart() {
       let changed = false;
       const updated = items.map((item) => {
         const sp = serverProducts.find((p) => p.id === item.id);
-        if (
-          sp &&
-          (Number(sp.price) !== Number(item.price) || sp.stock !== item.stock)
-        ) {
-          changed = true;
-          return { ...item, price: Number(sp.price), stock: sp.stock };
+        if (sp) {
+          const finalPrice = sp.final_price ?? sp.price;
+          if (finalPrice !== item.price) {
+            changed = true;
+            return {
+              ...item,
+              price: finalPrice,
+              stock: sp.stock,
+              discount: sp.discount,
+              discount_type: sp.discount_type,
+              original_price: sp.price,
+            };
+          }
         }
         return item;
       });
@@ -130,6 +141,26 @@ export default function Cart() {
 
               <div className="cart-item-info">
                 <h3>{item.name}</h3>
+                {item.discount > 0 && (
+                  <div
+                    style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <span
+                      style={{
+                        fontSize: "0.65rem",
+                        textDecoration: "line-through",
+                        color: "var(--text-muted)",
+                      }}>
+                      {formatCurrency(item.original_price || item.price)}
+                    </span>
+                    <span
+                      className="badge badge-danger"
+                      style={{ fontSize: "0.55rem" }}>
+                      {item.discount_type === "percentage"
+                        ? `${item.discount}%`
+                        : `-Rp`}
+                    </span>
+                  </div>
+                )}
                 <p className="cart-item-price">{formatCurrency(item.price)}</p>
               </div>
 

@@ -151,9 +151,31 @@ export default function ProductModal({ isOpen, onClose }) {
                 </div>
                 <div className="product-modal-item-info">
                   <p className="product-modal-item-name">{product.name}</p>
-                  <p className="product-modal-item-price">
-                    {formatCurrency(product.price)}
-                  </p>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    {product.discount > 0 && (
+                      <span
+                        style={{
+                          fontSize: "0.6rem",
+                          textDecoration: "line-through",
+                          color: "var(--text-muted)",
+                        }}>
+                        {formatCurrency(product.price)}
+                      </span>
+                    )}
+                    <p className="product-modal-item-price">
+                      {formatCurrency(product.final_price ?? product.price)}
+                    </p>
+                    {product.discount > 0 && (
+                      <span
+                        className="badge badge-danger"
+                        style={{ fontSize: "0.5rem" }}>
+                        {product.discount_type === "percentage"
+                          ? `${product.discount}%`
+                          : "Diskon"}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button
                   className="btn btn-dark btn-sm"
