@@ -27,6 +27,12 @@ export default function AdminLayout({ children, title }) {
       module: "categories",
     },
     { path: "/admin/banners", label: "Banner", icon: "🎨", module: "banners" },
+    {
+      path: "/admin/perhitungan",
+      label: "Perhitungan",
+      icon: "🧮",
+      module: "perhitungan",
+    },
     { path: "/admin/users", label: "Users", icon: "👥", module: "users" },
   ];
 

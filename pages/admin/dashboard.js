@@ -34,7 +34,7 @@ export default function AdminDashboard() {
           gap: 12,
           marginBottom: 24,
         }}>
-        ...
+        coming soon
       </div>
     </AdminLayout>
   );

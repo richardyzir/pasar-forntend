@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import api from "../../utils/api";
+import AdminLayout from "../../components/layout/AdminLayout";
 import { formatCurrency } from "../../utils/format";
 import { showToast } from "../../components/common/Toast";
 import Toast from "../../components/common/Toast";
-import PriceInput from "../../components/common/PriceInput";
 import SearchSelect from "../../components/common/SearchSelect";
-import AdminLayout from "../../components/layout/AdminLayout";
+import PriceInput from "../../components/common/PriceInput";
 
 const CATEGORIES = [
   "Sayur",
@@ -42,22 +42,14 @@ const UNITS = [
   "dus",
 ];
 
-export default function AdminProducts() {
+export default function AdminPerhitungan() {
   const router = useRouter();
-  const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [imageFile, setImageFile] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [canCreate, setCanCreate] = useState(false);
-  const [canEdit, setCanEdit] = useState(false);
-  const [canDelete, setCanDelete] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: "",
-    description: "",
     base_price: "",
     stock: "",
     category: "",
@@ -67,16 +59,19 @@ export default function AdminProducts() {
     image: "",
     is_active: false,
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
 
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem("user") || "{}");
-    if (!u.role || (u.role !== "admin" && u.role !== "master")) {
-      router.push("/admin/login");
-      return;
-    }
     const isMaster = u.role === "master";
     const perms = {};
-    if (u.permissions && Array.isArray(u.permissions))
+    if (u.permissions && Array.isArray(u.permissions)) {
       u.permissions.forEach((p) => {
         perms[p.module] = {
           view: p.can_view,
@@ -85,20 +80,23 @@ export default function AdminProducts() {
           delete: p.can_delete,
         };
       });
-    setCanCreate(isMaster || perms.products?.create);
-    setCanEdit(isMaster || perms.products?.edit);
-    setCanDelete(isMaster || perms.products?.delete);
+    }
+    setCanCreate(isMaster || perms.perhitungan?.create);
+    setCanEdit(isMaster || perms.perhitungan?.edit);
+    setCanDelete(isMaster || perms.perhitungan?.delete);
     loadProducts();
   }, [search]);
 
   const loadProducts = async (pageNum = 1) => {
     setLoading(true);
-    const { data } = await api.get("/admin/products", {
-      params: { search, per_page: 20, page: pageNum },
-    });
-    setProducts(data.data || []);
-    setPage(data.current_page || 1);
-    setLastPage(data.last_page || 1);
+    try {
+      const { data } = await api.get("/admin/perhitungan", {
+        params: { search, per_page: 20, page: pageNum },
+      });
+      setProducts(data?.data || data || []);
+      setPage(data?.current_page || 1);
+      setLastPage(data?.last_page || 1);
+    } catch (e) {}
     setLoading(false);
   };
 
@@ -106,15 +104,16 @@ export default function AdminProducts() {
     setEditId(p.id);
     setForm({
       name: p.name,
-      description: p.description || "",
-      base_price: p.base_price || "",
+      base_price: p.base_price,
       stock: p.stock,
       category: p.category || "",
       unit: p.unit || "pack",
+      image: p.image || "",
+      profit_percent: p.profit_percent ?? 2,
+      ops_percent: p.ops_percent ?? 15,
       discount: p.discount || "",
       discount_type: p.discount_type || "",
-      image: p.image || "",
-      is_active: p.is_active,
+      is_active: p.is_active ?? false,
     });
     setImageFile(null);
     setShowForm(true);
@@ -125,69 +124,53 @@ export default function AdminProducts() {
     if (imageFile) {
       const fd = new FormData();
       fd.append("image", imageFile);
-      const { data: img } = await api.post("/admin/products/upload-temp", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      fd.append("id", editId);
+      const { data: img } = await api.post(
+        "/admin/perhitungan/upload-image",
+        fd,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
       form.image = img.image;
+      setForm({ ...form, image: img.image });
     }
     if (editId) {
-      await api.put(`/admin/products/${editId}`, form);
+      await api.put(`/admin/perhitungan/${editId}`, form);
       showToast("✅ Diperbarui");
     } else {
-      await api.post("/admin/products", form);
+      await api.post("/admin/perhitungan", form);
       showToast("✅ Ditambahkan");
     }
     setShowForm(false);
     setEditId(null);
-    setForm({
-      name: "",
-      description: "",
-      base_price: "",
-      stock: "",
-      category: "",
-      unit: "pack",
-      discount: "",
-      discount_type: "",
-      image: "",
-      is_active: false,
-    });
+    setForm({ name: "", base_price: "", stock: "", category: "" });
     loadProducts();
   };
 
   const handleDelete = async (id) => {
     if (confirm("Yakin hapus?")) {
-      await api.delete(`/admin/products/${id}`);
+      await api.delete(`/admin/perhitungan/${id}`);
       showToast("🗑 Dihapus");
       loadProducts();
     }
   };
 
   return (
-    <AdminLayout title="Produk">
+    <AdminLayout title="Perhitungan">
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           marginBottom: 16,
         }}>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 700 }}>📝 Produk</h1>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 700 }}>
+          🧮 Perhitungan Harga
+        </h1>
         {canCreate && (
           <button
             className="btn btn-dark btn-sm"
             onClick={() => {
               setEditId(null);
-              setForm({
-                name: "",
-                description: "",
-                base_price: "",
-                stock: "",
-                category: "",
-                unit: "pack",
-                discount: "",
-                discount_type: "",
-                image: "",
-                is_active: false,
-              });
+              setForm({ name: "", base_price: "", stock: "", category: "" });
               setShowForm(true);
             }}>
             + Tambah
@@ -219,13 +202,16 @@ export default function AdminProducts() {
             }}>
             <thead>
               <tr style={{ borderBottom: "2px solid var(--border)" }}>
-                <th style={{ padding: 8 }}>Gambar</th>
                 <th style={{ padding: 8 }}>Nama</th>
-                <th style={{ padding: 8 }}>Kat</th>
-                <th style={{ padding: 8 }}>Unit</th>
+                <th style={{ padding: 8 }}>Kategori</th>
+                <th style={{ padding: 8 }}>Satuan</th>
                 <th style={{ padding: 8 }}>Stok</th>
                 <th style={{ padding: 8 }}>Base</th>
+                <th style={{ padding: 8 }}>Profit</th>
+                <th style={{ padding: 8 }}>Ops</th>
                 <th style={{ padding: 8 }}>Diskon</th>
+                <th style={{ padding: 8 }}>Jual</th>
+                <th style={{ padding: 8 }}>Show</th>
                 <th style={{ padding: 8 }}>Aksi</th>
               </tr>
             </thead>
@@ -233,74 +219,50 @@ export default function AdminProducts() {
               {products.map((p) => (
                 <tr
                   key={p.id}
-                  style={{
-                    borderBottom: "1px solid var(--border)",
-                    fontSize: "0.75rem",
-                  }}>
-                  <td style={{ padding: 6 }}>
-                    {p.image ? (
-                      <img
-                        src={`https://api.fofimart.com${p.image}`}
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 6,
-                          objectFit: "cover",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => {
-                          setEditId(p.id);
-                          handleEdit(p);
-                        }}
-                      />
-                    ) : (
-                      <button
-                        className="btn btn-outline btn-sm"
-                        style={{ fontSize: "0.6rem", padding: "2px 6px" }}
-                        onClick={() => {
-                          setEditId(p.id);
-                          handleEdit(p);
-                        }}>
-                        📷
-                      </button>
-                    )}
-                  </td>
-                  <td style={{ padding: 6, fontWeight: 600 }}>{p.name}</td>
-                  <td
-                    style={{
-                      padding: 6,
-                      fontSize: "0.65rem",
-                      color: "var(--text-secondary)",
-                    }}>
-                    {p.category || "-"}
-                  </td>
-                  <td style={{ padding: 6 }}>{p.unit || "pack"}</td>
-                  <td style={{ padding: 6 }}>{p.stock}</td>
-                  <td style={{ padding: 6 }}>{formatCurrency(p.base_price)}</td>
-                  <td style={{ padding: 6 }}>
+                  style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={{ padding: 8 }}>{p.name}</td>
+                  <td style={{ padding: 8 }}>{p.category}</td>
+                  <td style={{ padding: 8 }}>{p.unit}</td>
+                  <td style={{ padding: 8 }}>{p.stock}</td>
+                  <td style={{ padding: 8 }}>{formatCurrency(p.base_price)}</td>
+                  <td style={{ padding: 8 }}>{formatCurrency(p.profit)}</td>
+                  <td style={{ padding: 8 }}>{formatCurrency(p.ops)}</td>
+                  <td style={{ padding: 8 }}>
                     {p.discount > 0
                       ? p.discount_type === "percentage"
                         ? `${p.discount}%`
                         : formatCurrency(p.discount)
                       : "-"}
                   </td>
-                  <td style={{ padding: 6 }}>
-                    <div style={{ display: "flex", gap: 2 }}>
-                      {canEdit && (
-                        <button
-                          className="btn btn-outline btn-sm"
-                          onClick={() => handleEdit(p)}>
-                          ✏️
-                        </button>
-                      )}
-                      {canDelete && (
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDelete(p.id)}>
-                          🗑
-                        </button>
-                      )}
-                    </div>
+                  <td
+                    style={{
+                      padding: 8,
+                      fontWeight: 700,
+                      color: "var(--primary)",
+                    }}>
+                    {formatCurrency(p.selling_price)}
+                  </td>
+                  <td style={{ padding: 8 }}>
+                    <span
+                      className={`badge ${p.is_active ? "badge-success" : "badge-gray"}`}>
+                      {p.is_active ? "✓" : "✕"}
+                    </span>
+                  </td>
+                  <td style={{ padding: 8 }}>
+                    {canEdit && (
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => handleEdit(p)}>
+                        ✏️
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDelete(p.id)}>
+                        🗑
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -342,9 +304,10 @@ export default function AdminProducts() {
             style={{ padding: 20, maxHeight: "90vh", overflow: "auto" }}>
             <h3>{editId ? "Edit" : "Tambah"} Produk</h3>
             <form onSubmit={handleSave}>
-              {/* Gambar */}
+              {/* Upload gambar */}
               <div className="form-group">
                 <label className="form-label">Gambar</label>
+
                 {imageFile ? (
                   <div style={{ textAlign: "center" }}>
                     <img
@@ -381,7 +344,7 @@ export default function AdminProducts() {
                         position: "absolute",
                         top: "50%",
                         left: "50%",
-                        transform: "translate(-50%,-50%)",
+                        transform: "translate(-50%, -50%)",
                         display: "flex",
                         gap: 8,
                       }}>
@@ -406,7 +369,7 @@ export default function AdminProducts() {
                         type="button"
                         className="btn btn-danger btn-sm"
                         onClick={async () => {
-                          await api.put(`/admin/products/${editId}`, {
+                          await api.put(`/admin/perhitungan/${editId}`, {
                             image: "",
                           });
                           setForm({ ...form, image: "" });
@@ -446,27 +409,24 @@ export default function AdminProducts() {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Deskripsi</label>
-                <textarea
-                  className="form-textarea"
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
-                  }
+                <label className="form-label">Kategori</label>
+                <SearchSelect
+                  options={CATEGORIES}
+                  value={form.category}
+                  onChange={(val) => setForm({ ...form, category: val })}
+                  placeholder="Cari kategori..."
                 />
               </div>
-              <SearchSelect
-                label="Kategori"
-                options={CATEGORIES}
-                value={form.category}
-                onChange={(val) => setForm({ ...form, category: val })}
-              />
-              <SearchSelect
-                label="Satuan"
-                options={UNITS}
-                value={form.unit || "pack"}
-                onChange={(val) => setForm({ ...form, unit: val })}
-              />
+              <div className="form-group">
+                <label className="form-label">Satuan</label>
+                <SearchSelect
+                  options={UNITS}
+                  value={form.unit || "pack"}
+                  onChange={(val) => setForm({ ...form, unit: val })}
+                  placeholder="Cari satuan..."
+                />
+              </div>
+
               <div className="form-group">
                 <label className="form-label">Stok</label>
                 <input
@@ -476,11 +436,37 @@ export default function AdminProducts() {
                   onChange={(e) => setForm({ ...form, stock: e.target.value })}
                 />
               </div>
-              <PriceInput
-                label="Base Price (Rp)"
-                value={form.base_price}
-                onChange={(val) => setForm({ ...form, base_price: val })}
-              />
+              <div className="form-group">
+                <label className="form-label">Base Price (Rp)</label>
+                <PriceInput
+                  value={form.base_price}
+                  onChange={(val) => setForm({ ...form, base_price: val })}
+                />
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Profit %</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    value={form.profit_percent ?? 2}
+                    onChange={(e) =>
+                      setForm({ ...form, profit_percent: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Ops %</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    value={form.ops_percent ?? 15}
+                    onChange={(e) =>
+                      setForm({ ...form, ops_percent: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
               {/* DISKON */}
               <div className="form-group">
                 <label className="form-label">Diskon</label>
@@ -528,8 +514,27 @@ export default function AdminProducts() {
                   </div>
                 </div>
               </div>
-
-              <button className="btn btn-dark btn-block" type="submit">
+              <label
+                className="form-checkbox"
+                style={{
+                  marginBottom: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}>
+                <input
+                  type="checkbox"
+                  checked={form.is_active ?? false}
+                  onChange={(e) =>
+                    setForm({ ...form, is_active: e.target.checked })
+                  }
+                />
+                Aktif (tampil di etalase)
+              </label>
+              <button
+                className="btn btn-dark btn-block"
+                type="submit"
+                style={{ marginTop: 12 }}>
                 {editId ? "Simpan" : "Tambah"}
               </button>
             </form>

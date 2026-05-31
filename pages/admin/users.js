@@ -17,6 +17,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("");
+  const [tab, setTab] = useState("pelanggan"); // 'pelanggan' | 'petugas'
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState({
@@ -88,9 +89,11 @@ export default function AdminUsers() {
 
     // Default permissions
     const defaultPerms = {
-      products: { view: true, create: true, edit: true, delete: true },
-      orders: { view: true, create: false, edit: true, delete: false },
-      banners: { view: true, create: true, edit: true, delete: true },
+      products: { view: true, create: false, edit: false, delete: false },
+      orders: { view: true, create: false, edit: false, delete: false },
+      banners: { view: true, create: false, edit: false, delete: false },
+      categories: { view: true, create: false, edit: false, delete: false },
+      perhitungan: { view: false, create: false, edit: false, delete: false }, // ← TAMBAH
       users: { view: false, create: false, edit: false, delete: false },
     };
 
@@ -177,17 +180,34 @@ export default function AdminUsers() {
               permissions: {
                 products: {
                   view: true,
-                  create: true,
-                  edit: true,
-                  delete: true,
+                  create: false,
+                  edit: false,
+                  delete: false,
                 },
                 orders: {
                   view: true,
                   create: false,
-                  edit: true,
+                  edit: false,
                   delete: false,
                 },
-                banners: { view: true, create: true, edit: true, delete: true },
+                banners: {
+                  view: true,
+                  create: false,
+                  edit: false,
+                  delete: false,
+                },
+                categories: {
+                  view: true,
+                  create: false,
+                  edit: false,
+                  delete: false,
+                },
+                perhitungan: {
+                  view: false,
+                  create: false,
+                  edit: false,
+                  delete: false,
+                },
                 users: {
                   view: false,
                   create: false,
@@ -417,62 +437,64 @@ export default function AdminUsers() {
                   ))}
                 </select>
               </div>
-              <div className="form-group" style={{ marginTop: 8 }}>
-                <label
-                  className="form-label"
-                  style={{ fontWeight: 700, marginBottom: 8 }}>
-                  🔐 Permissions
-                </label>
+              {form.role !== "user" && (
+                <div className="form-group" style={{ marginTop: 8 }}>
+                  <label
+                    className="form-label"
+                    style={{ fontWeight: 700, marginBottom: 8 }}>
+                    🔐 Permissions
+                  </label>
 
-                {Object.keys(form.permissions || {}).map((module) => (
-                  <div
-                    key={module}
-                    style={{
-                      marginBottom: 8,
-                      padding: "8px 10px",
-                      background: "var(--bg-card-alt)",
-                      borderRadius: 8,
-                    }}>
-                    <p
+                  {Object.keys(form.permissions || {}).map((module) => (
+                    <div
+                      key={module}
                       style={{
-                        fontSize: "0.75rem",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        marginBottom: 4,
+                        marginBottom: 8,
+                        padding: "8px 10px",
+                        background: "var(--bg-card-alt)",
+                        borderRadius: 8,
                       }}>
-                      {module}
-                    </p>
-                    <div style={{ display: "flex", gap: 10 }}>
-                      {["view", "create", "edit", "delete"].map((action) => (
-                        <label
-                          key={action}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 3,
-                            fontSize: "0.65rem",
-                            cursor: "pointer",
-                          }}>
-                          <input
-                            type="checkbox"
-                            checked={
-                              form.permissions?.[module]?.[action] || false
-                            }
-                            onChange={(e) =>
-                              handlePermissionChange(
-                                module,
-                                action,
-                                e.target.checked,
-                              )
-                            }
-                          />
-                          {action}
-                        </label>
-                      ))}
+                      <p
+                        style={{
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          marginBottom: 4,
+                        }}>
+                        {module}
+                      </p>
+                      <div style={{ display: "flex", gap: 10 }}>
+                        {["view", "create", "edit", "delete"].map((action) => (
+                          <label
+                            key={action}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 3,
+                              fontSize: "0.65rem",
+                              cursor: "pointer",
+                            }}>
+                            <input
+                              type="checkbox"
+                              checked={
+                                form.permissions?.[module]?.[action] || false
+                              }
+                              onChange={(e) =>
+                                handlePermissionChange(
+                                  module,
+                                  action,
+                                  e.target.checked,
+                                )
+                              }
+                            />
+                            {action}
+                          </label>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
               <button className="btn btn-dark btn-block" type="submit">
                 {editId ? "Simpan" : "Tambah"}
               </button>
