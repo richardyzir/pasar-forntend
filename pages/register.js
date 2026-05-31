@@ -10,7 +10,8 @@ import SearchSelect from "../components/common/SearchSelect";
 export default function Register() {
   const router = useRouter();
   const { registerSendOtp } = useAuth();
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedKota, setSelectedKota] = useState("");
   const [selectedKecamatan, setSelectedKecamatan] = useState("");
   const [selectedKelurahan, setSelectedKelurahan] = useState("");
@@ -149,23 +150,71 @@ export default function Register() {
               placeholder="0812xxxxx"
               required
             />
-            <Input
-              label="Password *"
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              error={errors.password}
-              required
-            />
-            <Input
-              label="Konfirmasi Password *"
-              type="password"
-              name="password_confirmation"
-              value={form.password_confirmation}
-              onChange={handleChange}
-              required
-            />
+            <div className="form-group">
+              <label className="form-label">Password *</label>
+              <div style={{ position: "relative" }}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="form-input"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    right: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "1.2rem",
+                    padding: 0,
+                    color: "var(--text-secondary)",
+                  }}>
+                  {showPassword ? "✕" : "👁"}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="form-error">{errors.password}</p>
+              )}
+            </div>
+            <div className="form-group">
+              <label className="form-label">Konfirmasi Password *</label>
+              <div style={{ position: "relative" }}>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  className="form-input"
+                  name="password_confirmation"
+                  value={form.password_confirmation}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{
+                    position: "absolute",
+                    right: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "1.2rem",
+                    padding: 0,
+                    color: "var(--text-secondary)",
+                  }}>
+                  {showConfirmPassword ? "✕" : "👁"}
+                </button>
+              </div>
+            </div>
 
             <SearchSelect
               label="Kota"
