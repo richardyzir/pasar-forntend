@@ -45,10 +45,8 @@ export default function ProductModal({ isOpen, onClose }) {
   };
 
   const handleAdd = (product) => {
-    // Tambah ke cart global
     addItem(product);
 
-    // Update selected_items di localStorage
     const saved = localStorage.getItem("selected_items");
     let selected = saved ? JSON.parse(saved) : [];
 
@@ -59,7 +57,7 @@ export default function ProductModal({ isOpen, onClose }) {
       selected.push({
         id: product.id,
         name: product.name,
-        price: Number(product.price),
+        price: product.price,
         image: product.image,
         stock: product.stock,
         qty: 1,
@@ -67,8 +65,6 @@ export default function ProductModal({ isOpen, onClose }) {
     }
 
     localStorage.setItem("selected_items", JSON.stringify(selected));
-
-    // Notif
     showToast(`${product.name} ditambahkan ke pesanan`);
   };
 
@@ -77,7 +73,6 @@ export default function ProductModal({ isOpen, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="product-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className="product-modal-header">
           <h3>Tambah Produk</h3>
           <button onClick={onClose} className="product-modal-close">
@@ -85,7 +80,6 @@ export default function ProductModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Search */}
         <div className="product-modal-search">
           <span className="search-icon"></span>
           <input
@@ -100,7 +94,6 @@ export default function ProductModal({ isOpen, onClose }) {
           />
         </div>
 
-        {/* Categories */}
         <div className="product-modal-categories">
           {categories.map((cat) => (
             <button
@@ -115,7 +108,6 @@ export default function ProductModal({ isOpen, onClose }) {
           ))}
         </div>
 
-        {/* Products */}
         <div className="product-modal-list">
           {loading ? (
             <div style={{ textAlign: "center", padding: 20 }}>
@@ -153,26 +145,31 @@ export default function ProductModal({ isOpen, onClose }) {
                   <p className="product-modal-item-name">{product.name}</p>
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    {product.discount > 0 && (
+                    {/* Harga coret (original_price) */}
+                    {product.original_price > product.price && (
                       <span
                         style={{
                           fontSize: "0.6rem",
                           textDecoration: "line-through",
                           color: "var(--text-muted)",
                         }}>
-                        {formatCurrency(product.price)}
+                        {formatCurrency(product.original_price)}
                       </span>
                     )}
-                    <p className="product-modal-item-price">
-                      {formatCurrency(product.final_price ?? product.price)}
+                    {/* Harga akhir */}
+                    <p
+                      className="product-modal-item-price"
+                      style={{ fontWeight: 600 }}>
+                      {formatCurrency(product.price)}
                     </p>
+                    {/* Badge diskon */}
                     {product.discount > 0 && (
                       <span
                         className="badge badge-danger"
                         style={{ fontSize: "0.5rem" }}>
                         {product.discount_type === "percentage"
                           ? `${product.discount}%`
-                          : "Diskon"}
+                          : `-${formatCurrency(product.discount)}`}
                       </span>
                     )}
                   </div>
@@ -188,7 +185,6 @@ export default function ProductModal({ isOpen, onClose }) {
           )}
         </div>
 
-        {/* Pagination */}
         {lastPage > 1 && (
           <div className="product-modal-pagination">
             <button

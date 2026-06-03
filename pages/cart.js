@@ -29,10 +29,6 @@ export default function Cart() {
     syncPrices();
   }, []);
 
-  useEffect(() => {
-    syncPrices();
-  }, []);
-
   const syncPrices = async () => {
     if (items.length === 0) return;
     try {
@@ -44,16 +40,17 @@ export default function Cart() {
       const updated = items.map((item) => {
         const sp = serverProducts.find((p) => p.id === item.id);
         if (sp) {
-          const finalPrice = sp.final_price ?? sp.price;
-          if (finalPrice !== item.price) {
+          // ✅ Langsung pakai sp.price (sudah termasuk diskon dari backend)
+          const latestPrice = sp.price;
+          if (latestPrice !== item.price) {
             changed = true;
             return {
               ...item,
-              price: finalPrice,
+              price: latestPrice,
               stock: sp.stock,
               discount: sp.discount,
               discount_type: sp.discount_type,
-              original_price: sp.price,
+              original_price: sp.original_price || sp.price,
             };
           }
         }
@@ -141,7 +138,9 @@ export default function Cart() {
 
               <div className="cart-item-info">
                 <h3>{item.name}</h3>
-                {item.discount > 0 && (
+
+                {/* Harga coret (jika ada diskon) */}
+                {item.original_price > item.price && (
                   <div
                     style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     <span
@@ -150,17 +149,19 @@ export default function Cart() {
                         textDecoration: "line-through",
                         color: "var(--text-muted)",
                       }}>
-                      {formatCurrency(item.original_price || item.price)}
+                      {formatCurrency(item.original_price)}
                     </span>
                     <span
                       className="badge badge-danger"
                       style={{ fontSize: "0.55rem" }}>
                       {item.discount_type === "percentage"
                         ? `${item.discount}%`
-                        : `-Rp`}
+                        : `-${formatCurrency(item.discount)}`}
                     </span>
                   </div>
                 )}
+
+                {/* Harga akhir (sudah termasuk diskon) */}
                 <p className="cart-item-price">{formatCurrency(item.price)}</p>
               </div>
 

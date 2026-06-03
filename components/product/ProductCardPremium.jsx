@@ -4,11 +4,12 @@ import { useRouter } from "next/router";
 export default function ProductCardPremium({ product, onAddToCart }) {
   const router = useRouter();
 
+  const hasDiscount = product.original_price > product.price;
+
   return (
     <div
       onClick={() => router.push(`/product/${product.id}`)}
       className="product-card">
-      {/* Image */}
       <div className="product-card-image" style={{ fontSize: "3.5rem" }}>
         {product.image ? (
           <img
@@ -21,12 +22,13 @@ export default function ProductCardPremium({ product, onAddToCart }) {
         )}
       </div>
 
-      {/* Info */}
       <div className="product-info">
         <p className="product-category">{product.category || "Umum"}</p>
         <h3 className="product-name">{product.name}</h3>
         <p className="product-unit">per {product.unit || "pack"}</p>
-        {product.discount > 0 && (
+
+        {/* Harga coret (original_price) */}
+        {hasDiscount && (
           <div
             style={{
               display: "flex",
@@ -40,17 +42,21 @@ export default function ProductCardPremium({ product, onAddToCart }) {
                 textDecoration: "line-through",
                 color: "var(--text-muted)",
               }}>
-              {formatCurrency(product.price)}
+              {formatCurrency(product.original_price)}
             </span>
             <span className="badge badge-danger" style={{ fontSize: "0.6rem" }}>
               {product.discount_type === "percentage"
                 ? `${product.discount}%`
-                : `-Rp ${Number(product.discount).toLocaleString("id")}`}
+                : `-${formatCurrency(product.discount)}`}
             </span>
           </div>
         )}
-        <p className="product-price">
-          {formatCurrency(product.final_price ?? product.price)}
+
+        {/* Harga akhir (setelah diskon) */}
+        <p
+          className="product-price"
+          style={{ fontSize: "1rem", fontWeight: 700 }}>
+          {formatCurrency(product.price)}
         </p>
 
         <button

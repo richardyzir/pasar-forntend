@@ -109,7 +109,9 @@ export default function ProductDetail() {
                   textDecoration: "line-through",
                   color: "var(--text-muted)",
                 }}>
-                {formatCurrency(product.price)}
+                {formatCurrency(
+                  product.original_price ?? product.price + product.discount,
+                )}
               </span>
               <span className="badge badge-danger">
                 {product.discount_type === "percentage"
@@ -118,9 +120,7 @@ export default function ProductDetail() {
               </span>
             </div>
           )}
-          <p className="detail-price">
-            {formatCurrency(product.final_price ?? product.price)}
-          </p>
+          <p className="detail-price">{formatCurrency(product.price)}</p>
 
           <div className="detail-stock-row">
             <span

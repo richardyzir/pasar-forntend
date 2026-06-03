@@ -12,50 +12,45 @@ import { PAYMENT_METHODS } from "../utils/constants";
 import SuccessModal from "../components/common/SuccessModal";
 import AlertModal from "../components/common/AlertModal";
 import ProductModal from "../components/product/ProductModal";
+import api from "../utils/api"; // Tambahkan ini
 
 export default function Checkout() {
   const router = useRouter();
   const { user } = useAuth();
-
   const { items: cartItems, clearCart } = useCart();
-  const [items, setItems] = useState([]);
   const { loading, error, post } = useApi();
+
+  const [items, setItems] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false); // ✅ Tambahkan ini
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastOrder, setLastOrder] = useState(null);
-
   const [shippingAddress, setShippingAddress] = useState(user?.address || "");
   const [deliveryTime, setDeliveryTime] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [notes, setNotes] = useState("");
-  const [formError, setFormError] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
-  // const adminFee = 10000;
-  const finalTotal = total;
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
   const [deliveryNote, setDeliveryNote] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("selected_items");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.length > 0) {
-        setItems(parsed);
-      } else {
-        router.push("/cart");
-      }
-    } else {
-      router.push("/cart");
-    }
-  }, []);
+  // ✅ Hanya 1 syncPrices
+  const syncPrices = async () => {
+    const updatedItems = await Promise.all(
+      items.map(async (item) => {
+        try {
+          const { data } = await api.get(`/products/${item.id}`);
+          return { ...item, price: data.price };
+        } catch {
+          return item;
+        }
+      }),
+    );
+    setItems(updatedItems);
+    localStorage.setItem("selected_items", JSON.stringify(updatedItems));
+  };
 
-  const [isLoaded, setIsLoaded] = useState(false);
-
+  // ✅ Load items dari localStorage
   useEffect(() => {
     const saved = localStorage.getItem("selected_items");
     if (saved) {
@@ -70,6 +65,16 @@ export default function Checkout() {
       router.push("/cart");
     }
   }, []);
+
+  // ✅ Sync harga setelah items loaded
+  useEffect(() => {
+    if (items.length > 0 && isLoaded) {
+      syncPrices();
+    }
+  }, [items.length, isLoaded]);
+
+  const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const finalTotal = total;
 
   if (!isLoaded) {
     return (
@@ -91,12 +96,6 @@ export default function Checkout() {
     if (offset === 1) return `Besok (${day}, ${tgl} ${month})`;
     return `${day}, ${tgl} ${month}`;
   };
-
-  // fix waktu pengantaran
-  // hari ini ----- opsi pagi & sore
-  // besok ----- opsi pagi & sore
-  // lusa ----- opsi pagi & sore
-  // jika bisa tanggalnya di tampilkan secara otomatis ( ikut kalender )
 
   const isSlotAvailable = (offset, type) => {
     if (offset > 0) return true; // Besok & Lusa selalu tersedia
@@ -458,13 +457,13 @@ export default function Checkout() {
 
                 {/* Transfer Bank */}
                 <label
-                  className={`payment-method-option ${paymentMethod === "transfer" ? "selected" : ""}`}>
+                  className={`payment-method-option ${paymentMethod === "bank_transfer" ? "selected" : ""}`}>
                   <input
                     type="radio"
                     name="payment"
-                    value="transfer"
-                    checked={paymentMethod === "transfer"}
-                    onChange={() => setPaymentMethod("transfer")}
+                    value="bank_transfer" // ← ubah dari "transfer" ke "bank_transfer"
+                    checked={paymentMethod === "bank_transfer"}
+                    onChange={() => setPaymentMethod("bank_transfer")}
                   />
                   <div>
                     <strong>🏦 Transfer Bank</strong>
@@ -491,13 +490,13 @@ export default function Checkout() {
 
                 {/* Virtual Account */}
                 <label
-                  className={`payment-method-option ${paymentMethod === "va" ? "selected" : ""}`}>
+                  className={`payment-method-option ${paymentMethod === "virtual_account" ? "selected" : ""}`}>
                   <input
                     type="radio"
                     name="payment"
-                    value="va"
-                    checked={paymentMethod === "va"}
-                    onChange={() => setPaymentMethod("va")}
+                    value="virtual_account" // ← ubah dari "va" ke "virtual_account"
+                    checked={paymentMethod === "virtual_account"}
+                    onChange={() => setPaymentMethod("virtual_account")}
                   />
                   <div>
                     <strong>💳 Virtual Account</strong>
