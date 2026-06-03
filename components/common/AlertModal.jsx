@@ -1,9 +1,12 @@
 export default function AlertModal({
   isOpen,
   onClose,
+  onConfirm,
   title,
   message,
   type = "warning",
+  confirmText = "Hapus",
+  cancelText = "Batal",
 }) {
   if (!isOpen) return null;
 
@@ -71,21 +74,58 @@ export default function AlertModal({
           {message}
         </p>
 
-        <button
-          onClick={onClose}
-          style={{
-            width: "100%",
-            padding: "10px",
-            borderRadius: 10,
-            border: "none",
-            background: "#0f172a",
-            color: "#fff",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}>
-          Oke, Mengerti
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          {onConfirm ? (
+            <>
+              <button
+                onClick={onConfirm}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#dc2626",
+                  color: "#fff",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}>
+                {confirmText}
+              </button>
+              <button
+                onClick={onClose}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: 10,
+                  border: "1px solid #e4e4e7",
+                  background: "transparent",
+                  color: "#18181b",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}>
+                {cancelText}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={onClose}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: 10,
+                border: "none",
+                background: "#0f172a",
+                color: "#fff",
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}>
+              Oke, Mengerti
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

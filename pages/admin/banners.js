@@ -5,6 +5,7 @@ import { showToast } from "../../components/common/Toast";
 import Toast from "../../components/common/Toast";
 import VideoThumb from "../../components/common/VideoThumb";
 import AdminLayout from "../../components/layout/AdminLayout";
+import AlertModal from "../../components/common/AlertModal";
 
 export default function AdminBanners() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function AdminBanners() {
   const [canCreate, setCanCreate] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [form, setForm] = useState({
     title: "",
     subtitle: "",
@@ -108,11 +111,18 @@ export default function AdminBanners() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Yakin hapus?")) {
-      await api.delete(`/admin/banners/${id}`);
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteId) {
+      await api.delete(`/admin/banners/${deleteId}`);
       showToast("🗑 Banner dihapus");
       loadBanners();
+      setShowDeleteConfirm(false);
+      setDeleteId(null);
     }
   };
 
@@ -247,7 +257,7 @@ export default function AdminBanners() {
                 {canDelete && (
                   <button
                     className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(b.id)}>
+                    onClick={() => handleDeleteClick(b.id)}>
                     🗑
                   </button>
                 )}
@@ -517,6 +527,14 @@ export default function AdminBanners() {
           </div>
         </div>
       )}
+      <AlertModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Konfirmasi Hapus"
+        message="Yakin ingin menghapus banner ini? Tindakan tidak dapat dibatalkan."
+        type="warning"
+        onConfirm={handleDeleteConfirm}
+      />
       <Toast />
     </AdminLayout>
   );

@@ -3,6 +3,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import api from "../../utils/api";
 import { showToast } from "../../components/common/Toast";
 import Toast from "../../components/common/Toast";
+import AlertModal from "../../components/common/AlertModal";
 
 const ROLES = ["master", "admin", "kurir", "user"];
 const ROLE_COLORS = {
@@ -18,6 +19,8 @@ export default function AdminUsers() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [tab, setTab] = useState("pelanggan"); // 'pelanggan' | 'petugas'
+  const [deleteId, setDeleteId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState({
@@ -129,12 +132,19 @@ export default function AdminUsers() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Yakin hapus user ini?")) {
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteId) {
       try {
-        await api.delete(`/admin/users/${id}`);
+        await api.delete(`/admin/users/${deleteId}`);
         showToast("🗑 User dihapus");
         loadUsers(page);
+        setShowDeleteConfirm(false);
+        setDeleteId(null);
       } catch (err) {
         showToast("❌ " + (err.response?.data?.error || "Gagal"));
       }
@@ -312,7 +322,7 @@ export default function AdminUsers() {
                       </button>
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(u.id)}>
+                        onClick={() => handleDeleteClick(u.id)}>
                         🗑
                       </button>
                     </div>
@@ -502,6 +512,14 @@ export default function AdminUsers() {
           </div>
         </div>
       )}
+      <AlertModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Konfirmasi Hapus"
+        message="Yakin ingin menghapus user ini? Tindakan tidak dapat dibatalkan."
+        type="warning"
+      />
       <Toast />
     </AdminLayout>
   );

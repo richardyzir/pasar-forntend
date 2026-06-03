@@ -3,12 +3,18 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import api from "../../utils/api";
 import { showToast } from "../../components/common/Toast";
 import Toast from "../../components/common/Toast";
+import AlertModal from "../../components/common/AlertModal";
 
 export default function AdminCategories() {
   const [categories, setCategories] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState({
     name: "",
@@ -19,6 +25,22 @@ export default function AdminCategories() {
   });
 
   useEffect(() => {
+    const u = JSON.parse(localStorage.getItem("user") || "{}");
+    const isMaster = u.role === "master";
+    const perms = {};
+    if (u.permissions && Array.isArray(u.permissions)) {
+      u.permissions.forEach((p) => {
+        perms[p.module] = {
+          view: p.can_view,
+          create: p.can_create,
+          edit: p.can_edit,
+          delete: p.can_delete,
+        };
+      });
+    }
+    setCanCreate(isMaster || perms.categories?.create);
+    setCanEdit(isMaster || perms.categories?.edit);
+    setCanDelete(isMaster || perms.categories?.delete);
     loadCategories();
   }, []);
 
@@ -62,11 +84,18 @@ export default function AdminCategories() {
     loadCategories();
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Yakin hapus?")) {
-      await api.delete(`/admin/categories/${id}`);
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteId) {
+      await api.delete(`/admin/categories/${deleteId}`);
       showToast("🗑 Kategori dihapus");
       loadCategories();
+      setShowDeleteConfirm(false);
+      setDeleteId(null);
     }
   };
 
@@ -79,14 +108,16 @@ export default function AdminCategories() {
           marginBottom: 16,
         }}>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 700 }}>📂 Kategori</h1>
-        <button
-          className="btn btn-dark btn-sm"
-          onClick={() => {
-            setEditId(null);
-            setShowForm(true);
-          }}>
-          + Tambah
-        </button>
+        {canCreate && (
+          <button
+            className="btn btn-dark btn-sm"
+            onClick={() => {
+              setEditId(null);
+              setShowForm(true);
+            }}>
+            + Tambah
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -116,24 +147,29 @@ export default function AdminCategories() {
                     }}
                   />
                   <span style={{ fontSize: "0.7rem" }}>
-                    {cat.is_active ? "✅" : "❌"} Urutan: {cat.order}
+                    {cat.is_active ? "✅" : "❌"}
+                    {cat.order !== 0 && ` Urutan: ${cat.order}`}
                   </span>
                 </div>
               </div>
-              <button
-                className="btn btn-outline btn-sm"
-                onClick={() => {
-                  setEditId(cat.id);
-                  setForm(cat);
-                  setShowForm(true);
-                }}>
-                ✏️
-              </button>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={() => handleDelete(cat.id)}>
-                🗑
-              </button>
+              {canEdit && (
+                <button
+                  className="btn btn-outline btn-sm"
+                  onClick={() => {
+                    setEditId(cat.id);
+                    setForm(cat);
+                    setShowForm(true);
+                  }}>
+                  ✏️
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteClick(cat.id)}>
+                  🗑
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -246,6 +282,14 @@ export default function AdminCategories() {
           </div>
         </div>
       )}
+      <AlertModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Konfirmasi Hapus"
+        message="Yakin ingin menghapus kategori ini? Tindakan tidak dapat dibatalkan."
+        type="warning"
+      />
       <Toast />
     </AdminLayout>
   );

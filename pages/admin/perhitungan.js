@@ -7,6 +7,7 @@ import { showToast } from "../../components/common/Toast";
 import Toast from "../../components/common/Toast";
 import SearchSelect from "../../components/common/SearchSelect";
 import PriceInput from "../../components/common/PriceInput";
+import AlertModal from "../../components/common/AlertModal";
 
 const CATEGORIES = [
   "Sayur",
@@ -66,6 +67,8 @@ export default function AdminPerhitungan() {
   const [canCreate, setCanCreate] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem("user") || "{}");
@@ -146,11 +149,18 @@ export default function AdminPerhitungan() {
     loadProducts();
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Yakin hapus?")) {
-      await api.delete(`/admin/perhitungan/${id}`);
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteId) {
+      await api.delete(`/admin/perhitungan/${deleteId}`);
       showToast("🗑 Dihapus");
       loadProducts();
+      setShowDeleteConfirm(false);
+      setDeleteId(null);
     }
   };
 
@@ -259,7 +269,7 @@ export default function AdminPerhitungan() {
                     {canDelete && (
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(p.id)}>
+                        onClick={() => handleDeleteClick(p.id)}>
                         🗑
                       </button>
                     )}
@@ -541,6 +551,14 @@ export default function AdminPerhitungan() {
           </div>
         </div>
       )}
+      <AlertModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Konfirmasi Hapus"
+        message="Yakin ingin menghapus data perhitungan ini? Tindakan tidak dapat dibatalkan."
+        type="warning"
+      />
       <Toast />
     </AdminLayout>
   );

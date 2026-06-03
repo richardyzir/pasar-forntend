@@ -7,6 +7,7 @@ import Toast from "../../components/common/Toast";
 import PriceInput from "../../components/common/PriceInput";
 import SearchSelect from "../../components/common/SearchSelect";
 import AdminLayout from "../../components/layout/AdminLayout";
+import AlertModal from "../../components/common/AlertModal";
 
 const CATEGORIES = [
   "Sayur",
@@ -52,6 +53,8 @@ export default function AdminProducts() {
   const [search, setSearch] = useState("");
   const [canCreate, setCanCreate] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -154,11 +157,18 @@ export default function AdminProducts() {
     loadProducts();
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Yakin hapus?")) {
-      await api.delete(`/admin/products/${id}`);
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteId) {
+      await api.delete(`/admin/products/${deleteId}`);
       showToast("🗑 Dihapus");
       loadProducts();
+      setShowDeleteConfirm(false);
+      setDeleteId(null);
     }
   };
 
@@ -296,7 +306,7 @@ export default function AdminProducts() {
                       {canDelete && (
                         <button
                           className="btn btn-danger btn-sm"
-                          onClick={() => handleDelete(p.id)}>
+                          onClick={() => handleDeleteClick(p.id)}>
                           🗑
                         </button>
                       )}
@@ -536,6 +546,14 @@ export default function AdminProducts() {
           </div>
         </div>
       )}
+      <AlertModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Konfirmasi Hapus"
+        message="Yakin ingin menghapus produk ini? Tindakan tidak dapat dibatalkan."
+        type="warning"
+      />
       <Toast />
     </AdminLayout>
   );
