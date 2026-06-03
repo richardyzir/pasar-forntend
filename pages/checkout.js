@@ -80,34 +80,52 @@ export default function Checkout() {
       </Layout>
     );
   }
+  // Helper tanggal
+  const getDateLabel = (offset) => {
+    const date = new Date();
+    date.setDate(date.getDate() + offset);
+    const day = date.toLocaleDateString("id-ID", { weekday: "short" });
+    const tgl = date.getDate();
+    const month = date.toLocaleDateString("id-ID", { month: "short" });
+    if (offset === 0) return `Hari ini (${day}, ${tgl} ${month})`;
+    if (offset === 1) return `Besok (${day}, ${tgl} ${month})`;
+    return `${day}, ${tgl} ${month}`;
+  };
 
-  // Pagi: 08:30 - 10:30
-  const isMorningAvailable =
-    currentHour < 10 || (currentHour === 10 && currentMinute < 30);
+  // fix waktu pengantaran
+  // hari ini ----- opsi pagi & sore
+  // besok ----- opsi pagi & sore
+  // lusa ----- opsi pagi & sore
+  // jika bisa tanggalnya di tampilkan secara otomatis ( ikut kalender )
 
-  // Sore: 16:00 - 17:30
-  const isAfternoonAvailable =
-    currentHour < 17 || (currentHour === 17 && currentMinute < 30);
+  const isSlotAvailable = (offset, type) => {
+    if (offset > 0) return true; // Besok & Lusa selalu tersedia
 
-  const isKhusus = true;
+    // Hari ini (offset = 0)
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+
+    if (type === "pagi") {
+      return hours < 10 || (hours === 10 && minutes < 30);
+    }
+    if (type === "sore") {
+      return hours < 17 || (hours === 17 && minutes < 30);
+    }
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!deliveryTime) {
-      setAlertMessage("Pilih waktu pengantaran terlebih dahulu");
+    if (!shippingAddress.trim()) {
+      setAlertMessage("Alamat pengiriman harus diisi");
       setShowAlert(true);
       return;
     }
 
-    if (deliveryTime === "pagi" && !isMorningAvailable) {
-      setAlertMessage("Waktu pengantaran pagi sudah tidak tersedia");
-      setShowAlert(true);
-      return;
-    }
-
-    if (deliveryTime === "khusus" && !deliveryNote) {
-      setAlertMessage("Tulis waktu pengantaran yang diinginkan");
+    if (!paymentMethod) {
+      setAlertMessage("Pilih metode pembayaran");
       setShowAlert(true);
       return;
     }
@@ -124,37 +142,50 @@ export default function Checkout() {
       quantity: item.qty,
     }));
 
-    try {
-      const data = await post("/orders", {
-        items: orderItems,
-        shipping_address: shippingAddress,
-        payment_method: paymentMethod,
-        delivery_time: deliveryTime,
-        delivery_note: deliveryTime === "khusus" ? deliveryNote : null,
-        // admin_fee: adminFee,
-        notes,
-      });
+    // 🔁 Ubah deliveryTime ke format backend
+    let deliveryValue = "";
+    if (deliveryTime.startsWith("pagi")) deliveryValue = "pagi";
+    else if (deliveryTime.startsWith("sore")) deliveryValue = "sore";
+    else if (deliveryTime === "khusus") deliveryValue = "khusus";
 
+    if (!deliveryValue) {
+      setAlertMessage("Pilih waktu pengantaran yang valid");
+      setShowAlert(true);
+      return;
+    }
+
+    const payload = {
+      items: orderItems,
+      shipping_address: shippingAddress,
+      payment_method: paymentMethod,
+      delivery_time: deliveryValue, // ✅ "pagi", "sore", "khusus"
+      delivery_note: deliveryTime === "khusus" ? deliveryNote : null,
+      notes,
+    };
+
+    try {
+      const data = await post("/orders", payload);
       if (data.order) {
         setLastOrder(data.order);
         setShowSuccess(true);
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error("Error:", err.response?.data);
+      setAlertMessage(err.response?.data?.error || "Gagal membuat pesanan");
+      setShowAlert(true);
+    }
   };
 
   const handleCloseSuccess = () => {
     setShowSuccess(false);
 
-    // Hapus hanya item yang dipilih dari cart
     const remainingItems = cartItems.filter(
       (cartItem) =>
         !items.find((selectedItem) => selectedItem.id === cartItem.id),
     );
 
-    // Update localStorage cart
     localStorage.setItem("pasar_cart", JSON.stringify(remainingItems));
 
-    // Hapus selected_items
     localStorage.removeItem("selected_items");
 
     if (lastOrder) {
@@ -200,151 +231,293 @@ export default function Checkout() {
             <div className="card p-4 mb-4">
               <h3 className="font-bold text-lg mb-3">🚚 Waktu Pengantaran</h3>
 
-              {/* Pagi */}
-              <label
-                className={`delivery-option ${deliveryTime === "pagi" ? "selected" : ""} ${!isMorningAvailable ? "disabled" : ""}`}>
-                <input
-                  type="radio"
-                  name="delivery"
-                  value="pagi"
-                  checked={deliveryTime === "pagi"}
-                  onChange={(e) => {
-                    setDeliveryTime(e.target.value);
-                    setFormError("");
-                  }}
-                  disabled={!isMorningAvailable}
-                />
-                <div>
-                  <p className="font-semibold">
-                    🌅 Pagi {!isMorningAvailable && "(Tidak Tersedia)"}
-                  </p>
-                  <p
-                    className="text-sm"
-                    style={{ color: "var(--text-secondary)" }}>
-                    08:30 - 10:30
-                  </p>
-                </div>
-              </label>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {[
+                  { label: "Hari ini", offset: 0 },
+                  { label: "Besok", offset: 1 },
+                  { label: "Lusa", offset: 2 },
+                ].map(({ label, offset }) => {
+                  const date = new Date();
+                  date.setDate(date.getDate() + offset);
+                  const tanggal = date.toLocaleDateString("id-ID", {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short",
+                  });
 
-              {/* Sore */}
-              <label
-                className={`delivery-option ${deliveryTime === "sore" ? "selected" : ""} ${!isAfternoonAvailable ? "disabled" : ""}`}>
-                <input
-                  type="radio"
-                  name="delivery"
-                  value="sore"
-                  checked={deliveryTime === "sore"}
-                  onChange={(e) => {
-                    setDeliveryTime(e.target.value);
-                    setFormError("");
-                  }}
-                  disabled={!isAfternoonAvailable}
-                />
-                <div>
-                  <p className="font-semibold">
-                    🌆 Sore {!isAfternoonAvailable && "(Tidak Tersedia)"}
-                  </p>
-                  <p
-                    className="text-sm"
-                    style={{ color: "var(--text-secondary)" }}>
-                    16:00 - 17:30
-                  </p>
-                </div>
-              </label>
+                  return (
+                    <div
+                      key={offset}
+                      style={{
+                        display: "flex",
+                        alignItems: "stretch",
+                        gap: 12,
+                        flexWrap: "wrap",
+                      }}>
+                      {/* Shape Tanggal */}
+                      <div
+                        style={{
+                          flex: 1,
+                          minWidth: 110,
+                          padding: "12px 10px",
+                          background: "var(--bg-card-alt)",
+                          borderRadius: 10,
+                          textAlign: "center",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                        }}>
+                        <div style={{ fontWeight: 700, fontSize: "1rem" }}>
+                          {label}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "1rem",
+                            color: "var(--text-secondary)",
+                          }}>
+                          {tanggal}
+                        </div>
+                      </div>
 
-              {/* Khusus */}
-              <label
-                className={`delivery-option ${deliveryTime === "khusus" ? "selected" : ""}`}
-                style={{ flexDirection: "column", alignItems: "flex-start" }}>
+                      {/* Shape Jam */}
+                      <div
+                        style={{
+                          flex: 2,
+                          display: "flex",
+                          gap: 20,
+                          flexWrap: "wrap",
+                          padding: "12px 16px",
+                          background: "var(--bg-card-alt)",
+                          borderRadius: 10,
+                          alignItems: "center",
+                        }}>
+                        <label
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            opacity: isSlotAvailable(offset, "pagi") ? 1 : 0.5,
+                            cursor: isSlotAvailable(offset, "pagi")
+                              ? "pointer"
+                              : "not-allowed",
+                          }}>
+                          <input
+                            type="radio"
+                            name="delivery"
+                            value={`pagi_${offset}`}
+                            checked={deliveryTime === `pagi_${offset}`}
+                            onChange={() => setDeliveryTime(`pagi_${offset}`)}
+                            disabled={!isSlotAvailable(offset, "pagi")}
+                          />
+                          <span>🌅 Pagi</span>
+                          <span
+                            style={{
+                              fontSize: "1rem",
+                              color: "var(--text-secondary)",
+                            }}>
+                            08:30-10:30
+                          </span>
+                          {offset === 0 && !isSlotAvailable(offset, "pagi") && (
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                                color: "red",
+                                marginLeft: 6,
+                              }}>
+                              (habis)
+                            </span>
+                          )}
+                        </label>
+                        <label
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            opacity: isSlotAvailable(offset, "sore") ? 1 : 0.5,
+                            cursor: isSlotAvailable(offset, "sore")
+                              ? "pointer"
+                              : "not-allowed",
+                          }}>
+                          <input
+                            type="radio"
+                            name="delivery"
+                            value={`sore_${offset}`}
+                            checked={deliveryTime === `sore_${offset}`}
+                            onChange={() => setDeliveryTime(`sore_${offset}`)}
+                            disabled={!isSlotAvailable(offset, "sore")}
+                          />
+                          <span>🌆 Sore</span>
+                          <span
+                            style={{
+                              fontSize: "1rem",
+                              color: "var(--text-secondary)",
+                            }}>
+                            16:00-17:30
+                          </span>
+                          {offset === 0 && !isSlotAvailable(offset, "sore") && (
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                                color: "red",
+                                marginLeft: 6,
+                              }}>
+                              (habis)
+                            </span>
+                          )}
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Khusus */}
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    width: "100%",
+                    alignItems: "stretch",
+                    gap: 12,
+                    flexWrap: "wrap",
                   }}>
-                  <input
-                    type="radio"
-                    name="delivery"
-                    value="khusus"
-                    checked={deliveryTime === "khusus"}
-                    onChange={(e) => {
-                      setDeliveryTime(e.target.value);
-                      setFormError("");
-                    }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <p className="font-semibold">📅 Pesanan (Khusus)</p>
-                    <p
-                      className="text-sm"
-                      style={{ color: "var(--text-secondary)" }}>
-                      Tulis waktu pengantaran yang diinginkan
-                    </p>
+                  <div
+                    style={{
+                      flex: 1,
+                      minWidth: 110,
+                      padding: "12px 10px",
+                      background: "var(--bg-card-alt)",
+                      borderRadius: 10,
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                    }}>
+                    <div style={{ fontWeight: 700 }}>Khusus</div>
+                    <div
+                      style={{
+                        fontSize: "1rem",
+                        color: "var(--text-secondary)",
+                      }}>
+                      tulis waktu
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      flex: 2,
+                      padding: "12px 16px",
+                      background: "var(--bg-card-alt)",
+                      borderRadius: 10,
+                    }}>
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginBottom: 6,
+                      }}>
+                      <input
+                        type="radio"
+                        name="delivery"
+                        value="khusus"
+                        checked={deliveryTime === "khusus"}
+                        onChange={() => setDeliveryTime("khusus")}
+                      />
+                      <span>📅 Khusus</span>
+                    </label>
+                    {deliveryTime === "khusus" && (
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Contoh: Besok jam 10 pagi"
+                        value={deliveryNote}
+                        onChange={(e) => setDeliveryNote(e.target.value)}
+                        style={{ marginTop: 4 }}
+                      />
+                    )}
                   </div>
                 </div>
-
-                {deliveryTime === "khusus" && (
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Contoh: Besok jam 10 pagi, Sabtu jam 2 siang..."
-                    value={deliveryNote}
-                    onChange={(e) => setDeliveryNote(e.target.value)}
-                    style={{ marginTop: 10, width: "100%" }}
-                  />
-                )}
-              </label>
-
-              {formError && (
-                <p
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "#dc2626",
-                    marginTop: 8,
-                  }}>
-                  ⚠ {formError}
-                </p>
-              )}
+              </div>
             </div>
 
             <div className="card p-4 mb-4">
               <h3 className="font-bold text-lg mb-3">Metode Pembayaran</h3>
               <div className="payment-methods">
-                {PAYMENT_METHODS.map((method) => (
-                  <label
-                    key={method.value}
-                    className={`payment-method-option ${paymentMethod === method.value ? "selected" : ""}`}
-                    style={{
-                      opacity: method.value !== "cod" ? 0.4 : 1,
-                      cursor:
-                        method.value !== "cod" ? "not-allowed" : "pointer",
-                      pointerEvents: method.value !== "cod" ? "none" : "auto",
-                    }}
-                    onClick={(e) => {
-                      if (method.value !== "cod") e.preventDefault();
-                    }}>
-                    <input
-                      type="radio"
-                      name="payment"
-                      value={method.value}
-                      checked={paymentMethod === method.value}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      disabled={method.value !== "cod"}
-                    />
-                    {method.label}
-                    {method.value !== "cod" && (
-                      <span
-                        style={{
-                          fontSize: "0.6rem",
-                          display: "block",
-                          color: "var(--text-muted)",
-                        }}>
-                        Segera Hadir
-                      </span>
-                    )}
-                  </label>
-                ))}
+                {/* COD */}
+                <label
+                  className={`payment-method-option ${paymentMethod === "cod" ? "selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="cod"
+                    checked={paymentMethod === "cod"}
+                    onChange={() => setPaymentMethod("cod")}
+                  />
+                  <div>
+                    <strong>💵 Bayar di Tempat (COD)</strong>
+                  </div>
+                </label>
+
+                {/* Transfer Bank */}
+                <label
+                  className={`payment-method-option ${paymentMethod === "transfer" ? "selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="transfer"
+                    checked={paymentMethod === "transfer"}
+                    onChange={() => setPaymentMethod("transfer")}
+                  />
+                  <div>
+                    <strong>🏦 Transfer Bank</strong>
+                    <span style={{ display: "block", fontSize: "0.7rem" }}>
+                      1490015156633 a.n Richard
+                    </span>
+                  </div>
+                </label>
+
+                {/* QRIS */}
+                <label
+                  className={`payment-method-option ${paymentMethod === "qris" ? "selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="qris"
+                    checked={paymentMethod === "qris"}
+                    onChange={() => setPaymentMethod("qris")}
+                  />
+                  <div>
+                    <strong>📷 QRIS</strong>
+                  </div>
+                </label>
+
+                {/* Virtual Account */}
+                <label
+                  className={`payment-method-option ${paymentMethod === "va" ? "selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="va"
+                    checked={paymentMethod === "va"}
+                    onChange={() => setPaymentMethod("va")}
+                  />
+                  <div>
+                    <strong>💳 Virtual Account</strong>
+                    <span style={{ display: "block", fontSize: "0.7rem" }}>
+                      DANA : 081347759125
+                    </span>
+                  </div>
+                </label>
               </div>
+
+              {/* Tampilkan QRIS jika dipilih */}
+              {paymentMethod === "qris" && (
+                <div style={{ textAlign: "center", marginTop: 12 }}>
+                  <img
+                    src="/qris.png"
+                    alt="QRIS"
+                    style={{ width: 200, height: "auto" }}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="card p-4">

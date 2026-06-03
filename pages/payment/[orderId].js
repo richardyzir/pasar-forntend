@@ -217,19 +217,19 @@ export default function PaymentPage() {
                   <>
                     <div className="payment-row">
                       <span className="payment-label">Bank</span>
-                      <span className="payment-value-bold">BCA</span>
+                      <span className="payment-value-bold">Mandiri</span>
                     </div>
                     <div className="payment-row">
                       <span className="payment-label">No. Rekening</span>
                       <span
                         className="payment-value-bold"
                         style={{ letterSpacing: 1 }}>
-                        1234567890
+                        1490015156633
                       </span>
                     </div>
                     <div className="payment-row">
                       <span className="payment-label">Atas Nama</span>
-                      <span className="payment-value-bold">Fofi Mart</span>
+                      <span className="payment-value-bold">Richard</span>
                     </div>
                   </>
                 )}
